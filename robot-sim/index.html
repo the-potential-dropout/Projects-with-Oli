@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#16181c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="Digital twin simulator for our hexapod robot. Drive it like a video game and battle a bot." />
+    <title>Robot Sim</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316181c'/%3E%3Cpath d='M20 26h24v14H20z' fill='%23ff7a1a'/%3E%3Cpath d='M20 30l-10-6M20 34H8M20 38l-10 6M44 30l10-6M44 34h12M44 38l10 6' stroke='%23ff7a1a' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+
+    <div id="loading" class="overlay">
+      <div class="loading-box">
+        <div class="spinner"></div>
+        <p>Loading the robot…</p>
+      </div>
+    </div>
+
+    <!-- Garage: pick robot, mode and attachments -->
+    <div id="menu" class="overlay hidden">
+      <div class="panel menu-panel">
+        <header>
+          <h1>Robot Sim</h1>
+          <p class="sub">Digital twin of our hexapod. Build it, drive it, battle it.</p>
+        </header>
+
+        <section>
+          <h2>Robot</h2>
+          <div id="robot-cards" class="cards"></div>
+        </section>
+
+        <section>
+          <h2>Mode</h2>
+          <div class="seg" id="mode-seg">
+            <button data-mode="battle" class="on">Battle vs bot</button>
+            <button data-mode="free">Free drive</button>
+          </div>
+        </section>
+
+        <section class="grid2">
+          <div>
+            <h2>Your attachments</h2>
+            <label>Top mount <select id="you-top"></select></label>
+            <p class="hint" id="you-top-desc"></p>
+            <label>Front bracket <select id="you-front"></select></label>
+            <p class="hint" id="you-front-desc"></p>
+          </div>
+          <div id="bot-config">
+            <h2>Bot opponent</h2>
+            <label>Difficulty
+              <select id="bot-level">
+                <option value="easy">Easy</option>
+                <option value="normal" selected>Normal</option>
+                <option value="hard">Hard</option>
+              </select>
+            </label>
+            <label>Top mount <select id="bot-top"></select></label>
+            <label>Front bracket <select id="bot-front"></select></label>
+          </div>
+        </section>
+
+        <button id="start" class="big">Start</button>
+
+        <details class="help">
+          <summary>Controls</summary>
+          <div class="controls-grid">
+            <div>
+              <h3>Keyboard + mouse</h3>
+              <p><kbd>W</kbd><kbd>S</kbd> walk · <kbd>A</kbd><kbd>D</kbd> strafe · <kbd>Q</kbd><kbd>E</kbd> or <kbd>←</kbd><kbd>→</kbd> turn</p>
+              <p><kbd>↑</kbd><kbd>↓</kbd> or <kbd>R</kbd><kbd>F</kbd> aim · <kbd>Space</kbd> fire · <kbd>G</kbd> alt (gripper) · <kbd>Shift</kbd> sprint</p>
+              <p>Click the view to steer with the mouse (left = fire, right = alt). <kbd>C</kbd> camera · <kbd>T</kbd> twin panel · <kbd>Esc</kbd> pause</p>
+            </div>
+            <div>
+              <h3>Gamepad</h3>
+              <p>Left stick walk + strafe · Right stick turn + aim</p>
+              <p>RT / A fire · LT / RB alt · L3 / LB sprint · Start pause</p>
+            </div>
+            <div>
+              <h3>Touch</h3>
+              <p>Left stick walk (push to the edge to sprint) · Right stick turn + aim · FIRE and ALT buttons</p>
+            </div>
+          </div>
+        </details>
+        <p class="foot">Projects with Oli · <a href="https://github.com/the-potential-dropout/Projects-with-Oli" target="_blank" rel="noopener">GitHub</a></p>
+      </div>
+    </div>
+
+    <!-- In-game HUD -->
+    <div id="hud" class="hidden">
+      <div class="hp-row">
+        <div class="hp" id="hp-you"><span class="name">You</span><div class="bar"><i></i></div></div>
+        <div class="hp right" id="hp-bot"><span class="name">Bot</span><div class="bar"><i></i></div></div>
+      </div>
+      <canvas id="radar" width="140" height="140"></canvas>
+      <div class="tools">
+        <button id="btn-pause" title="Pause (Esc)">❚❚</button>
+        <button id="btn-cam" title="Camera (C)">🎥</button>
+        <button id="btn-twin" title="Digital twin panel (T)">⚙</button>
+        <button id="btn-full" title="Fullscreen">⛶</button>
+      </div>
+      <div id="status"></div>
+      <div id="banner"></div>
+      <div id="touch" class="hidden">
+        <div class="stick" id="stick-move"><div class="knob"></div></div>
+        <div class="stick" id="stick-look"><div class="knob"></div></div>
+        <button id="btn-fire" class="tbtn fire">FIRE</button>
+        <button id="btn-alt" class="tbtn alt">ALT</button>
+      </div>
+    </div>
+
+    <div id="pause" class="overlay hidden">
+      <div class="panel small">
+        <h2>Paused</h2>
+        <button id="resume" class="big">Resume</button>
+        <button id="restart">Restart</button>
+        <button id="to-menu">Garage</button>
+        <label class="check"><input type="checkbox" id="opt-sound" checked /> Sound</label>
+        <label class="check"><input type="checkbox" id="opt-hq" /> High quality graphics</label>
+      </div>
+    </div>
+
+    <aside id="twin" class="hidden">
+      <header>
+        <strong>Digital twin</strong>
+        <button id="twin-close" title="Close">✕</button>
+      </header>
+      <p class="hint">Live servo angles (0–180°) for the real robot. Same numbers the simulator uses.</p>
+      <div id="twin-serial"></div>
+      <table id="twin-table"></table>
+    </aside>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
