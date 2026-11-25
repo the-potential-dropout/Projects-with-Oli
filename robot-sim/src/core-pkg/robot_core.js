@@ -89,6 +89,14 @@ export class HexapodGait {
         wasm.hexapodgait_set_step(this.__wbg_ptr, step_height, step_hz);
     }
     /**
+     * Joint limit from the CAD: the tibia may not fold further than this
+     * (radians, relative to the femur; Mk1 = -135 deg).
+     * @param {number} min_tibia
+     */
+    set_tibia_limit(min_tibia) {
+        wasm.hexapodgait_set_tibia_limit(this.__wbg_ptr, min_tibia);
+    }
+    /**
      * Advance the gait. `vx`, `vz` are the commanded body velocities (m/s, body
      * frame, +Z forward, +X left) and `yaw_rate` is rad/s (+ = turn left).
      * @param {number} dt

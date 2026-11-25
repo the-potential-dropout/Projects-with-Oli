@@ -72,6 +72,7 @@ export class Hexapod {
     const c = this.cfg;
     this.gait = new HexapodGait(new Float32Array(gaitMounts(c)), c.leg.coxa, c.leg.femur, c.leg.tibia, c.leg.footReach, c.standHeight);
     this.gait.set_step(c.standHeight * 0.45, c.stepHz.walk);
+    if (c.jointLimits) this.gait.set_tibia_limit((c.jointLimits.tibia[0] * Math.PI) / 180);
     this.bodyId = world.add_body(c.hitRadius);
 
     this.root = new THREE.Group();

@@ -9,7 +9,7 @@
 //! "Right" is -X in three.js when the robot faces +Z, so right-side legs have
 //! negative X mount positions.
 
-use crate::ik::solve_leg;
+use crate::ik::solve_leg_limited;
 use wasm_bindgen::prelude::*;
 
 const LEGS: usize = 6;
@@ -32,6 +32,7 @@ pub struct HexapodGait {
     feet: [f32; LEGS * 3],
     angles: [f32; LEGS * 3],
     clamped: u32,
+    min_tibia: f32, // most the tibia may fold (radians, negative)
 }
 
 #[wasm_bindgen]
@@ -65,6 +66,7 @@ impl HexapodGait {
             feet: [0.0; LEGS * 3],
             angles: [0.0; LEGS * 3],
             clamped: 0,
+            min_tibia: -core::f32::consts::PI,
         };
         g.update(0.0, 0.0, 0.0, 0.0);
         g
@@ -72,6 +74,12 @@ impl HexapodGait {
 
     pub fn set_body_height(&mut self, h: f32) {
         self.body_height = h;
+    }
+
+    /// Joint limit from the CAD: the tibia may not fold further than this
+    /// (radians, relative to the femur; Mk1 = -135 deg).
+    pub fn set_tibia_limit(&mut self, min_tibia: f32) {
+        self.min_tibia = min_tibia;
     }
 
     pub fn set_step(&mut self, step_height: f32, step_hz: f32) {
@@ -149,7 +157,7 @@ impl HexapodGait {
             let (c, sn) = (self.mount_yaw[i].cos(), self.mount_yaw[i].sin());
             let lx = dx * c + dz * sn;
             let lz = -dx * sn + dz * c;
-            let a = solve_leg(lx, fy, lz, self.coxa, self.femur, self.tibia);
+            let a = solve_leg_limited(lx, fy, lz, self.coxa, self.femur, self.tibia, self.min_tibia);
             if a.clamped {
                 self.clamped += 1;
             }
@@ -223,5 +231,26 @@ mod tests {
             assert!(!(a_up && b_up), "both tripods in the air");
         }
         assert_eq!(g.clamped_legs(), 0);
+    }
+
+    #[test]
+    fn sprint_strafe_respects_tibia_limit() {
+        // Mk1 numbers: strafing at a sprint used to fold the tibia to about -148 deg
+        let mut mounts = Vec::new();
+        for (x, z, splay) in [(-0.06f32, 0.11f32, 35f32), (-0.08, 0.0, 0.0), (-0.06, -0.11, -35.0), (0.06, 0.11, 35.0), (0.08, 0.0, 0.0), (0.06, -0.11, -35.0)] {
+            let yaw = if x < 0.0 { core::f32::consts::PI - splay.to_radians() } else { splay.to_radians() };
+            mounts.extend_from_slice(&[x, z, yaw]);
+        }
+        let limit = -135f32.to_radians();
+        let mut g = HexapodGait::new(&mounts, 0.045, 0.075, 0.12, 0.13, 0.09);
+        g.set_tibia_limit(limit);
+        g.set_step(0.045, 2.6);
+        for _ in 0..600 {
+            g.update(1.0 / 60.0, 0.48, 0.0, 0.0);
+            let a = g.angles();
+            for i in 0..6 {
+                assert!(a[i * 3 + 2] >= limit - 1e-3, "tibia {} deg", a[i * 3 + 2].to_degrees());
+            }
+        }
     }
 }

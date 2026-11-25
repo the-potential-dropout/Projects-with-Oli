@@ -20,11 +20,24 @@ pub struct LegAngles {
 }
 
 pub fn solve_leg(x: f32, y: f32, z: f32, coxa_len: f32, femur_len: f32, tibia_len: f32) -> LegAngles {
+    solve_leg_limited(x, y, z, coxa_len, femur_len, tibia_len, -core::f32::consts::PI)
+}
+
+/// Like `solve_leg`, but never folds the tibia further than `min_tibia`
+/// (radians, e.g. -135 deg for the Mk1 CAD, where the tibia bridge would hit
+/// the coxa and the femur's servo cradle). The femur-to-foot distance only
+/// depends on the tibia angle, so the limit becomes a minimum reach; the
+/// foot then lands slightly further out along the same line.
+#[allow(clippy::too_many_arguments)]
+pub fn solve_leg_limited(x: f32, y: f32, z: f32, coxa_len: f32, femur_len: f32, tibia_len: f32, min_tibia: f32) -> LegAngles {
     let coxa = z.atan2(x);
     let horiz = (x * x + z * z).sqrt() - coxa_len;
     let mut d = (horiz * horiz + y * y).sqrt();
 
-    let min_d = (femur_len - tibia_len).abs() + 1e-4;
+    // Knee interior angle k = pi + tibia, and d^2 = f^2 + t^2 - 2 f t cos(k)
+    let k_min = (core::f32::consts::PI + min_tibia).max(0.0);
+    let fold_d = (femur_len * femur_len + tibia_len * tibia_len - 2.0 * femur_len * tibia_len * k_min.cos()).max(0.0).sqrt();
+    let min_d = fold_d.max((femur_len - tibia_len).abs()) + 1e-4;
     let max_d = femur_len + tibia_len - 1e-4;
     let mut clamped = false;
     if d > max_d {
@@ -87,6 +100,21 @@ mod tests {
             let p = forward_leg(&a, c, f, t);
             assert!((p[0] - x).abs() < 1e-4 && (p[1] - y).abs() < 1e-4 && (p[2] - z).abs() < 1e-4, "{:?} vs {:?}", p, (x, y, z));
         }
+    }
+
+    #[test]
+    fn tibia_never_folds_past_its_limit() {
+        let limit = -135f32.to_radians();
+        // Foot tucked in close to the femur axis would need about -150 deg
+        let free = solve_leg(0.085, -0.04, 0.0, 0.045, 0.075, 0.12);
+        assert!(free.tibia < limit);
+        let a = solve_leg_limited(0.085, -0.04, 0.0, 0.045, 0.075, 0.12, limit);
+        assert!(a.clamped);
+        assert!(a.tibia >= limit - 1e-3, "tibia {}", a.tibia.to_degrees());
+        // A normal standing foot is untouched by the limit
+        let s = solve_leg_limited(0.13, -0.09, 0.0, 0.045, 0.075, 0.12, limit);
+        assert!(!s.clamped);
+        assert_eq!(s, solve_leg(0.13, -0.09, 0.0, 0.045, 0.075, 0.12));
     }
 
     #[test]

@@ -27,6 +27,13 @@ export const HEXAPOD = {
   },
 
   standHeight: 0.09, // belly height above the ground while walking
+
+  // Joint limits from the Fusion collision sweep, in simulator degrees:
+  // coxa 0 = along the splay; femur 0 = level, + = up; tibia relative to the
+  // femur, 0 = straight out, -90 = hanging vertically, more negative = folded in.
+  // Folding the tibia past -135 hits the coxa and the femur's servo cradle,
+  // so the gait IK refuses to go further (core/src/ik.rs solve_leg_limited).
+  jointLimits: { coxa: [-45, 45], femur: [-35, 90], tibia: [-135, 30] },
   hitRadius: 0.17, // for battle collisions
   footprintRadius: 0.2, // for bumping into walls and other robots
 
