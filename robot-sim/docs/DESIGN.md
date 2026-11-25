@@ -329,8 +329,8 @@ Files are in `cad/mesh/`. They were exported with every joint at 0 and converted
 | `coxa.glb` | 4.2k | Coxa + coxa horn + femur servo | On the coxa axis at femur-axis height. Leg along +X. Servo horn side is −Z |
 | `femur.glb` | 3.8k | Femur + femur horn + tibia servo | On the femur axis. Link along +X, zero angle = horizontal |
 | `tibia.glb` | 3.2k | Tibia + tibia horn + TPU boot | On the tibia axis. At zero angle the shank runs along +X and the boot touches at x = 0.120 m |
-| `top_interface.glb` | 1.4k | QR receiver | Body frame |
-| `attachment_example.glb` | 2.4k | Adapter plate + MG90S | Body frame. Datum (top of the adapter plate) at y = 0.0405 m |
+| `qr_receiver.glb` | 1.4k | QR receiver | Body frame |
+| `qr_adapter_example.glb` | 2.4k | Adapter plate + MG90S | Body frame. Datum (top of the adapter plate) at y = 0.0405 m |
 | `sonar_example.glb` | 0.6k | HC-SR04 | Body frame |
 
 All six legs use the same three leg meshes, rotated by the mount yaw like the real parts. Nothing is mirrored.

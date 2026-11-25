@@ -1,23 +1,4 @@
 {
- "attachment_example": {
-  "triangles": 2384,
-  "bbox_m": [
-   [
-    -0.035,
-    0.0297,
-    -0.042
-   ],
-   [
-    0.035,
-    0.069,
-    0.02
-   ]
-  ],
-  "parts": [
-   "MG90S",
-   "QR_AdapterPlate_Example"
-  ]
- },
  "body": {
   "triangles": 26526,
   "bbox_m": [
@@ -92,6 +73,43 @@
    "MG996R"
   ]
  },
+ "qr_adapter_example": {
+  "triangles": 2384,
+  "bbox_m": [
+   [
+    -0.035,
+    0.0297,
+    -0.042
+   ],
+   [
+    0.035,
+    0.069,
+    0.02
+   ]
+  ],
+  "parts": [
+   "MG90S",
+   "QR_AdapterPlate_Example"
+  ]
+ },
+ "qr_receiver": {
+  "triangles": 1380,
+  "bbox_m": [
+   [
+    -0.03,
+    0.0275,
+    -0.058
+   ],
+   [
+    0.03,
+    0.0355,
+    0.02
+   ]
+  ],
+  "parts": [
+   "QR_Receiver"
+  ]
+ },
  "sonar_example": {
   "triangles": 572,
   "bbox_m": [
@@ -128,24 +146,6 @@
    "FootBoot_TPU",
    "Horn_25T",
    "Tibia"
-  ]
- },
- "top_interface": {
-  "triangles": 1380,
-  "bbox_m": [
-   [
-    -0.03,
-    0.0275,
-    -0.058
-   ],
-   [
-    0.03,
-    0.0355,
-    0.02
-   ]
-  ],
-  "parts": [
-   "QR_Receiver"
   ]
  }
 }
