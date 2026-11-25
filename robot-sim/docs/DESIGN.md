@@ -13,6 +13,8 @@ This is the real robot that the simulator copies. The Fusion design **Hexapod Mk
 | [cad/orient_stl.py](../cad/orient_stl.py) | Turns Fusion's raw STL exports into print orientation and checks bed fit. |
 | [cad/build_report.json](../cad/build_report.json) | Numbers the generator derived (servo pocket planes, arm positions, volumes). |
 | [ELECTRONICS.md](ELECTRONICS.md) | Shopping list and wiring for everything that isn't printed. |
+| [cad/mesh/](../cad/mesh/) | GLB meshes for the simulator, one per rigid moving group, in metres and sim axes (see §11). |
+| [cad/export_sim_meshes.py](../cad/export_sim_meshes.py) | Converts per-body Fusion STL exports into those GLBs. |
 
 Everything here is a first design that has not been built yet. Print the test coupons (see [Tolerances and calibration](#tolerances-and-calibration)) before committing to a full set of parts.
 
@@ -316,3 +318,19 @@ The stand pose (femur level, tibia vertical) puts the belly (the bottom of the c
 - A Mk2 coxa that mounts the femur servo case pointing up, which would give more femur-down travel.
 
 **Cost:** about **US$525–555** for the whole robot (12 MG996R + 6 DS3218, branded boards, 2 kg filament, battery and charger), or about US$440 with all-MG996R servos and AliExpress boards. The itemised list is in [ELECTRONICS.md §7](ELECTRONICS.md#7-rough-total).
+
+## 11. Meshes for the simulator
+
+Files are in `cad/mesh/`. They were exported with every joint at 0 and converted by `cad/export_sim_meshes.py`. Units are metres, +Y is up, and bearings and fasteners are left out. Each file has one material per part.
+
+| File | Triangles | Contents | Origin and axes |
+| --- | --- | --- | --- |
+| `body.glb` | 26.5k | Plates, standoffs, 6 coxa servos, battery tray + battery, UBEC, PCA9685s, controller carrier + perfboard + ESP32, power panel, sonar bracket | Body centre, half way between the plates (the femur-axis height). +Z forward, +X robot left |
+| `coxa.glb` | 4.2k | Coxa + coxa horn + femur servo | On the coxa axis at femur-axis height. Leg along +X. Servo horn side is −Z |
+| `femur.glb` | 3.8k | Femur + femur horn + tibia servo | On the femur axis. Link along +X, zero angle = horizontal |
+| `tibia.glb` | 3.2k | Tibia + tibia horn + TPU boot | On the tibia axis. At zero angle the shank runs along +X and the boot touches at x = 0.120 m |
+| `top_interface.glb` | 1.4k | QR receiver | Body frame |
+| `attachment_example.glb` | 2.4k | Adapter plate + MG90S | Body frame. Datum (top of the adapter plate) at y = 0.0405 m |
+| `sonar_example.glb` | 0.6k | HC-SR04 | Body frame |
+
+All six legs use the same three leg meshes, rotated by the mount yaw like the real parts. Nothing is mirrored.
