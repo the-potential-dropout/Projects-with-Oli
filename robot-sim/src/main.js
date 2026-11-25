@@ -1,5 +1,6 @@
 import './style.css';
 import { loadCore } from './core.js';
+import { loadHexapodMeshes } from './robots/hexapod.meshes.js';
 import { Game } from './game.js';
 import { ROBOTS } from './robots/index.js';
 import { ATTACHMENTS, attachmentsForSlot } from './attachments.js';
@@ -58,7 +59,8 @@ function resolveBotLoadout(bot) {
 
 async function boot() {
   try {
-    await loadCore();
+    // Rust core is required; the CAD meshes fall back to simple shapes if they fail
+    await Promise.all([loadCore(), loadHexapodMeshes()]);
   } catch (e) {
     $('#loading p').textContent = `Could not start the simulator core (${e.message}). Try a newer browser.`;
     return;

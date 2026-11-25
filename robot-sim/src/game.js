@@ -32,7 +32,7 @@ export class Game {
     this.player = null;
     this.settings = null;
     this.over = false;
-    this.clock = new THREE.Clock();
+    this.lastTime = performance.now();
     this.#bindHud();
   }
 
@@ -84,7 +84,7 @@ export class Game {
     const dpr = Math.min(devicePixelRatio || 1, this.hq ? 2 : 1.5);
     this.renderer.setPixelRatio(dpr);
     this.renderer.shadowMap.enabled = this.hq;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.sun.castShadow = this.hq;
     this.scene.traverse((o) => {
       if (o.isMesh && o.material && !o.material.transparent) {
@@ -392,7 +392,9 @@ export class Game {
   start() {
     const loop = () => {
       requestAnimationFrame(loop);
-      const dt = Math.min(0.05, this.clock.getDelta());
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - this.lastTime) / 1000);
+      this.lastTime = now;
       this.frame(dt);
     };
     loop();

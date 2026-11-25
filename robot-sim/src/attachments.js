@@ -4,6 +4,7 @@
 // function below that returns { group, update(dt, cmd, game), hud?(), servos?() }.
 import * as THREE from 'three';
 import { solve_arm_2link } from './core.js';
+import { hexapodMesh } from './robots/hexapod.meshes.js';
 
 export const ATTACHMENTS = {
   none: { slot: 'any', name: 'Empty', desc: 'Nothing mounted.' },
@@ -351,13 +352,20 @@ function sensorContactUpdate(robot, game, scan, yaw, fov, rays, maxDist) {
 
 function sonar(robot) {
   const group = new THREE.Group();
-  const board = mesh(new THREE.BoxGeometry(0.045, 0.02, 0.004), M.sensor);
-  group.add(board);
-  for (const x of [-0.013, 0.013]) {
-    const can = mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.012, 16), M.silver);
-    can.rotation.x = Math.PI / 2;
-    can.position.set(x, 0, 0.008);
-    group.add(can);
+  // Real HC-SR04 from the CAD (modelled in the body frame, so undo the bracket offset)
+  const cad = hexapodMesh('sonar_example');
+  if (cad) {
+    cad.position.fromArray(robot.cfg.frontMount).negate();
+    group.add(cad);
+  } else {
+    const board = mesh(new THREE.BoxGeometry(0.045, 0.02, 0.004), M.sensor);
+    group.add(board);
+    for (const x of [-0.013, 0.013]) {
+      const can = mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.012, 16), M.silver);
+      can.rotation.x = Math.PI / 2;
+      can.position.set(x, 0, 0.008);
+      group.add(can);
+    }
   }
   const FOV = (30 * Math.PI) / 180;
   const MAX = 4;

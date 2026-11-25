@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { HexapodGait } from '../core.js';
 import { HEXAPOD, gaitMounts, legToServo } from './hexapod.config.js';
 import { createAttachment } from '../attachments.js';
+import { hexapodMesh, hasHexapodMeshes } from './hexapod.meshes.js';
 
 const tmpV = new THREE.Vector3();
 
@@ -96,6 +97,13 @@ export class Hexapod {
   }
 
   #buildBody() {
+    // Real CAD chassis from Fusion when available
+    const cad = hexapodMesh('body', this.bodyMat);
+    if (cad) {
+      this.body.add(cad);
+      this.body.add(hexapodMesh('qr_receiver', this.bodyMat));
+      return;
+    }
     const b = this.cfg.body;
     // Hexagon-ish plates (an extruded shape matches what we'd laser-cut / 3D print)
     const shape = new THREE.Shape();
@@ -171,32 +179,36 @@ export class Hexapod {
 
       const coxaJ = new THREE.Group();
       mount.add(coxaJ);
-      const s0 = servoBox();
-      s0.rotation.x = Math.PI / 2;
-      coxaJ.add(s0);
-      coxaJ.add(linkBox(c.leg.coxa, 0.022, 0.008, SHARED.aluminium));
-
       const femurJ = new THREE.Group();
       femurJ.position.x = c.leg.coxa;
       coxaJ.add(femurJ);
-      femurJ.add(servoBox());
-      const femurLink = linkBox(c.leg.femur, 0.024, 0.012, this.bodyMat);
-      femurJ.add(femurLink);
-
       const tibiaJ = new THREE.Group();
       tibiaJ.position.x = c.leg.femur;
       femurJ.add(tibiaJ);
-      tibiaJ.add(servoBox());
-      // Tapered tibia
-      const tibGeo = new THREE.CylinderGeometry(0.006, 0.011, c.leg.tibia, 10);
-      tibGeo.rotateZ(Math.PI / 2);
-      tibGeo.translate(c.leg.tibia / 2, 0, 0);
-      const tib = new THREE.Mesh(tibGeo, this.bodyMat);
-      tib.castShadow = true;
-      tibiaJ.add(tib);
-      const foot = new THREE.Mesh(new THREE.SphereGeometry(0.009, 12, 8), SHARED.rubber);
-      foot.position.x = c.leg.tibia;
-      tibiaJ.add(foot);
+
+      if (hasHexapodMeshes()) {
+        // Real CAD links (the coxa servo itself is part of the body mesh)
+        coxaJ.add(hexapodMesh('coxa', this.bodyMat));
+        femurJ.add(hexapodMesh('femur', this.bodyMat));
+        tibiaJ.add(hexapodMesh('tibia', this.bodyMat));
+      } else {
+        const s0 = servoBox();
+        s0.rotation.x = Math.PI / 2;
+        coxaJ.add(s0);
+        coxaJ.add(linkBox(c.leg.coxa, 0.022, 0.008, SHARED.aluminium));
+        femurJ.add(servoBox());
+        femurJ.add(linkBox(c.leg.femur, 0.024, 0.012, this.bodyMat));
+        tibiaJ.add(servoBox());
+        const tibGeo = new THREE.CylinderGeometry(0.006, 0.011, c.leg.tibia, 10);
+        tibGeo.rotateZ(Math.PI / 2);
+        tibGeo.translate(c.leg.tibia / 2, 0, 0);
+        const tib = new THREE.Mesh(tibGeo, this.bodyMat);
+        tib.castShadow = true;
+        tibiaJ.add(tib);
+        const foot = new THREE.Mesh(new THREE.SphereGeometry(0.009, 12, 8), SHARED.rubber);
+        foot.position.x = c.leg.tibia;
+        tibiaJ.add(foot);
+      }
 
       this.legs.push({ coxaJ, femurJ, tibiaJ });
     }
@@ -214,6 +226,18 @@ export class Hexapod {
       const a = createAttachment(id, this);
       this.attachments[slot] = a;
       if (a) (slot === 'top' ? this.topSlot : this.frontSlot).add(a.group);
+    }
+    // Quick-release adapter plate under whatever is on the top deck (CAD only).
+    // It is modelled in the body frame, so undo the slot offset.
+    this.adapterPlate?.removeFromParent();
+    this.adapterPlate = null;
+    if (this.attachments.top) {
+      const plate = hexapodMesh('qr_adapter_example', null, (m) => m.startsWith('QR_Adapter'));
+      if (plate) {
+        plate.position.copy(this.topSlot.position).negate();
+        this.topSlot.add(plate);
+        this.adapterPlate = plate;
+      }
     }
     this.loadout = { top: loadout?.top ?? 'none', front: loadout?.front ?? 'none' };
   }
@@ -312,16 +336,17 @@ export class Hexapod {
     const c = this.cfg;
     this.root.position.copy(this.pos);
     this.root.rotation.y = this.yaw;
-    let y = c.standHeight + (this.alive ? this.gait.bob() : 0);
+    // The body stays level at stand height while alive: the gait's IK assumes
+    // that, so any lean or bob here would push the feet through the floor.
+    let y = c.standHeight;
     if (!this.alive) {
       const t = Math.min(1, this.deathT * 2);
       y = THREE.MathUtils.lerp(c.standHeight, c.body.plateGap / 2 + 0.012, t);
       this.body.rotation.z = 0.12 * t;
       this.body.rotation.x = -0.06 * t;
     } else {
-      // Lean slightly into motion for a more physical look
-      this.body.rotation.x = THREE.MathUtils.lerp(this.body.rotation.x, this.vel.z * 0.25, 0.1);
-      this.body.rotation.z = THREE.MathUtils.lerp(this.body.rotation.z, -this.vel.x * 0.25, 0.1);
+      this.body.rotation.x = 0;
+      this.body.rotation.z = 0;
     }
     this.body.position.y = y;
     this.world.set_body(this.bodyId, this.pos.x, y + 0.02, this.pos.z, this.alive);
