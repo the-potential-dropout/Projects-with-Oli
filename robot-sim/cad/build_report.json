@@ -1,0 +1,257 @@
+{
+ "parts": [
+  {
+   "part": "Plate_Top_Front",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    172.8,
+    123.0,
+    5.0
+   ],
+   "volume_cm3": 73.91,
+   "fillets": 4,
+   "chamfer_edges": 61
+  },
+  {
+   "part": "Plate_Top_Rear",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    202.0,
+    151.0,
+    5.0
+   ],
+   "volume_cm3": 98.78,
+   "fillets": 6,
+   "chamfer_edges": 87
+  },
+  {
+   "part": "Plate_Bottom_Front",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    202.0,
+    151.0,
+    9.0
+   ],
+   "volume_cm3": 117.19,
+   "fillets": 6,
+   "chamfer_edges": 88
+  },
+  {
+   "part": "Plate_Bottom_Rear",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    172.8,
+    123.0,
+    5.0
+   ],
+   "volume_cm3": 82.94,
+   "fillets": 4,
+   "chamfer_edges": 55
+  },
+  {
+   "part": "BatteryTray",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    58.0,
+    112.0,
+    29.5
+   ],
+   "volume_cm3": 29.02,
+   "fillets": 6,
+   "chamfer_edges": 24
+  },
+  {
+   "part": "ControllerCarrier",
+   "bed": [
+    0,
+    0,
+    1
+   ],
+   "extents_mm": [
+    54.0,
+    74.0,
+    8.0
+   ],
+   "volume_cm3": 8.44,
+   "fillets": 0,
+   "chamfer_edges": 10
+  },
+  {
+   "part": "PowerPanel",
+   "bed": [
+    0,
+    -1,
+    0
+   ],
+   "extents_mm": [
+    22.0,
+    14.0,
+    45.0
+   ],
+   "volume_cm3": 4.02,
+   "fillets": 2,
+   "chamfer_edges": 8
+  },
+  {
+   "part": "FrontSensorBracket",
+   "bed": [
+    0,
+    1,
+    0
+   ],
+   "extents_mm": [
+    50.0,
+    19.0,
+    54.5
+   ],
+   "volume_cm3": 8.63,
+   "fillets": 0,
+   "chamfer_edges": 14
+  },
+  {
+   "part": "QR_Receiver",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    60.0,
+    78.0,
+    8.0
+   ],
+   "volume_cm3": 25.47,
+   "fillets": 0,
+   "chamfer_edges": 20
+  },
+  {
+   "part": "QR_AdapterPlate_Example",
+   "bed": [
+    0,
+    0,
+    1
+   ],
+   "extents_mm": [
+    70.0,
+    62.0,
+    10.8
+   ],
+   "volume_cm3": 28.63,
+   "fillets": 0,
+   "chamfer_edges": 14
+  },
+  {
+   "part": "Coxa",
+   "bed": [
+    0,
+    -1,
+    0
+   ],
+   "extents_mm": [
+    72.8,
+    39.1,
+    89.8
+   ],
+   "volume_cm3": 50.77,
+   "fillets": 5,
+   "chamfer_edges": 20
+  },
+  {
+   "part": "Femur",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    108.0,
+    61.2,
+    26.0
+   ],
+   "volume_cm3": 49.93,
+   "fillets": 4,
+   "chamfer_edges": 16
+  },
+  {
+   "part": "Tibia",
+   "bed": [
+    -1,
+    0,
+    0
+   ],
+   "extents_mm": [
+    24.0,
+    61.2,
+    129.0
+   ],
+   "volume_cm3": 67.47,
+   "fillets": 8,
+   "chamfer_edges": 24
+  },
+  {
+   "part": "FootBoot_TPU",
+   "bed": [
+    0,
+    0,
+    1
+   ],
+   "extents_mm": [
+    28.0,
+    22.0,
+    23.0
+   ],
+   "volume_cm3": 5.33,
+   "fillets": 0,
+   "chamfer_edges": 0
+  }
+ ],
+ "joints": 18,
+ "occurrences": 103,
+ "geo": {
+  "T": 5.0,
+  "GAP": 45.0,
+  "z_top": 27.5,
+  "z_bot": -27.5,
+  "Lc": 45.0,
+  "Lf": 75.0,
+  "Lt": 120.0,
+  "lobe": 21.0,
+  "fit": 0.25,
+  "slide": 0.2,
+  "ins": 4.0,
+  "clr": 3.4,
+  "brg": 10.1,
+  "pcd": 18.0,
+  "cham": 0.5,
+  "fil": 3.0,
+  "y_back": -24.1,
+  "y_bottom": -18.8,
+  "y_tab": 7.8,
+  "y_horn": 25.1,
+  "y_horn_out": 30.6,
+  "y_idler_in": -24.6,
+  "y_idler_out": -30.6,
+  "z_coxa_horn": 44.8,
+  "z_coxa_lower_top": -28.0
+ }
+}

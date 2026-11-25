@@ -1,0 +1,142 @@
+[
+ {
+  "part": "Plate_Top_Front",
+  "x": 172.8,
+  "y": 123.0,
+  "z": 5.0,
+  "volume_cm3": 73.9,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 5756
+ },
+ {
+  "part": "Plate_Top_Rear",
+  "x": 201.9,
+  "y": 151.0,
+  "z": 5.0,
+  "volume_cm3": 98.76,
+  "fits_220": true,
+  "fits_180": false,
+  "triangles": 8976
+ },
+ {
+  "part": "Plate_Bottom_Front",
+  "x": 201.9,
+  "y": 151.0,
+  "z": 9.0,
+  "volume_cm3": 117.16,
+  "fits_220": true,
+  "fits_180": false,
+  "triangles": 5908
+ },
+ {
+  "part": "Plate_Bottom_Rear",
+  "x": 172.8,
+  "y": 123.0,
+  "z": 5.0,
+  "volume_cm3": 82.93,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 2732
+ },
+ {
+  "part": "BatteryTray",
+  "x": 58.0,
+  "y": 112.0,
+  "z": 29.5,
+  "volume_cm3": 29.02,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 2374
+ },
+ {
+  "part": "ControllerCarrier",
+  "x": 54.0,
+  "y": 74.0,
+  "z": 8.0,
+  "volume_cm3": 8.44,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 1640
+ },
+ {
+  "part": "PowerPanel",
+  "x": 22.0,
+  "y": 45.0,
+  "z": 14.0,
+  "volume_cm3": 4.02,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 472
+ },
+ {
+  "part": "FrontSensorBracket",
+  "x": 50.0,
+  "y": 54.5,
+  "z": 19.0,
+  "volume_cm3": 8.63,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 1900
+ },
+ {
+  "part": "QR_Receiver",
+  "x": 60.0,
+  "y": 78.0,
+  "z": 8.0,
+  "volume_cm3": 25.47,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 1732
+ },
+ {
+  "part": "QR_AdapterPlate_Example",
+  "x": 70.0,
+  "y": 62.0,
+  "z": 10.8,
+  "volume_cm3": 28.63,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 2240
+ },
+ {
+  "part": "Coxa",
+  "x": 72.8,
+  "y": 89.8,
+  "z": 39.1,
+  "volume_cm3": 50.77,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 2382
+ },
+ {
+  "part": "Femur",
+  "x": 108.0,
+  "y": 61.2,
+  "z": 26.0,
+  "volume_cm3": 49.94,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 2024
+ },
+ {
+  "part": "Tibia",
+  "x": 129.0,
+  "y": 61.2,
+  "z": 24.0,
+  "volume_cm3": 67.47,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 1548
+ },
+ {
+  "part": "FootBoot_TPU",
+  "x": 28.0,
+  "y": 22.0,
+  "z": 23.0,
+  "volume_cm3": 5.33,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 520
+ }
+]

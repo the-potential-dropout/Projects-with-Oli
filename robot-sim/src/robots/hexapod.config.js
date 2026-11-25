@@ -14,7 +14,8 @@ export const HEXAPOD = {
     width: 0.14,
     thickness: 0.005,
     plateGap: 0.045, // distance between the top and bottom plates (servos sit between)
-    massKg: 1.6, // estimate with 18 x MG996R, battery and controller
+    lobeRadius: 0.021, // plate lobe round each coxa axis so the servo tabs have material (Fusion: body_lobeRadius)
+    massKg: 2.7, // CAD estimate: 18 x MG996R + ~1.1 kg printed PLA + battery + electronics (docs/DESIGN.md)
   },
 
   // Leg segment lengths, measured joint-to-joint (coxa axis to femur axis, etc.)
@@ -46,8 +47,10 @@ export const HEXAPOD = {
   stepHz: { walk: 1.7, sprint: 2.6 },
 
   // Top mount for the swappable attachment (turret plate) and front sensor bracket
-  topMount: [0, 0.03, -0.01],
-  frontMount: [0, 0.0, 0.13],
+  // topMount: datum = top of the quick-release adapter plate, 13 mm above the top plate (docs/DESIGN.md)
+  // frontMount: HC-SR04 centre sits 12 mm below the body mid-plane, sensor face 135 mm forward
+  topMount: [0, 0.013, -0.01],
+  frontMount: [0, -0.012, 0.135],
 
   // Servo wiring for the real robot: which PWM channel drives which joint and
   // how a simulator angle maps to a servo angle (0-180). Adjust "trim" after

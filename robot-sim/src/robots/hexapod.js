@@ -122,6 +122,18 @@ export class Hexapod {
       plate.castShadow = plate.receiveShadow = true;
       this.body.add(plate);
     }
+    // Lobes round each coxa axis (the real plates grow these so the servo tabs have material)
+    if (b.lobeRadius) {
+      const lobe = new THREE.CylinderGeometry(b.lobeRadius, b.lobeRadius, b.thickness, 32);
+      for (const [mx, mz] of this.cfg.mounts) {
+        for (const y of [b.plateGap / 2 + b.thickness / 2, -b.plateGap / 2 - b.thickness / 2]) {
+          const m = new THREE.Mesh(lobe, this.bodyMat);
+          m.position.set(mx, y, mz);
+          m.castShadow = m.receiveShadow = true;
+          this.body.add(m);
+        }
+      }
+    }
     // Stand-offs between plates
     const post = new THREE.CylinderGeometry(0.004, 0.004, b.plateGap, 8);
     for (const [x, z] of [[-0.035, 0.1], [0.035, 0.1], [-0.035, -0.1], [0.035, -0.1]]) {

@@ -1,12 +1,12 @@
 # Building the real hexapod
 
-The simulator's numbers come from [src/robots/hexapod.config.js](../src/robots/hexapod.config.js). If you change a part, update that file so the digital twin keeps matching the robot. The CAD model in Fusion should use the same dimensions.
+The simulator's numbers come from [src/robots/hexapod.config.js](../src/robots/hexapod.config.js). If you change a part, update that file so the digital twin keeps matching the robot. The Fusion model (**Hexapod Mk1**) is generated from the same numbers. See [DESIGN.md](DESIGN.md) for the printed parts, assembly order and attachment interface, and [ELECTRONICS.md](ELECTRONICS.md) for the shopping list.
 
 ## Key dimensions
 
 | Part | Value |
 | --- | --- |
-| Body plates (top + bottom) | 260 × 140 mm, 5 mm thick, 45 mm apart |
+| Body plates (top + bottom) | 260 × 140 mm core hexagon + 21 mm lobes round each coxa (262 × 202 mm overall), 5 mm thick, 45 mm apart, each split in two for printing |
 | Coxa (hip) | 45 mm joint-to-joint |
 | Femur (thigh) | 75 mm |
 | Tibia (shin) | 120 mm |
@@ -18,7 +18,7 @@ The simulator's numbers come from [src/robots/hexapod.config.js](../src/robots/h
 
 | Qty | Part | Notes |
 | --- | --- | --- |
-| 18 | MG996R (or DS3218) metal-gear servos | Legs. ~10 kg·cm is plenty for a ~1.6 kg robot |
+| 18 | MG996R metal-gear servos (DS3218MG recommended for the 6 femurs) | Legs. The robot comes out at about 2.7 kg, which puts MG996R femurs at about 70 % of stall: see DESIGN.md §8 |
 | 5 | MG90S micro servos | Robotic arm (base, shoulder, elbow, wrist, gripper) |
 | 1 | MG90S | Turret pitch for the laser / potato cannon |
 | 2 | PCA9685 16-channel PWM boards | Addresses 0x40 and 0x41 (solder A0 on the second one) |
@@ -26,7 +26,7 @@ The simulator's numbers come from [src/robots/hexapod.config.js](../src/robots/h
 | 1 | 2S LiPo 7.4 V, 2200 mAh + 5–6 V / 20 A UBEC | Servos draw a lot of current, so don't power them from USB |
 | 1 | HC-SR04 ultrasonic sensor | "Sonar" front attachment |
 | 1 | LD06 / RPLIDAR C1 | "LiDAR" front attachment (optional, pricier) |
-| — | 3 mm plywood/acrylic or 3D-printed plates and leg links, M3 hardware, servo horns | |
+| — | 3D-printed plates and leg parts (STLs in `cad/stl/`), M3 heat-set inserts and screws, 18 × 623ZZ bearings, 25T aluminium horns | Full list in ELECTRONICS.md |
 
 The "toy laser" is a laser-tag style IR LED + red LED, never a real laser pointed at people. The "potato cannon" in real life is a spring or flywheel foam-ball launcher, not a combustion cannon.
 
