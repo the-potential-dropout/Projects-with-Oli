@@ -86,7 +86,7 @@ BASE = dict(coxa=0.045, femur=0.075, tibia=0.120, standHeight=0.09, footReach=0.
             legSplay=[35, 0, -35, 35, 0, -35], speed_walk=0.26, speed_sprint=0.48, hz_walk=1.7, hz_sprint=2.6, turn=1.6)
 
 
-def main(mass=2.86, attach=0.4):
+def main(mass=2.96, attach=0.4):
     chosen = {'coxa': ST3215, 'femur': STS3250, 'tibia': ST3215}
     budget = {'coxa': ST3215, 'femur': ST3215, 'tibia': ST3215}
     rows = {

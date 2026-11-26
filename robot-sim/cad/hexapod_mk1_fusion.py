@@ -256,6 +256,8 @@ Y_TP = (27.625, 32.625)                    # tibia + horn arm (outside the femur
 Y_TM = (-34.625, -29.625)                  # tibia - horn arm
 PAD_R = 9.3
 Y_LEG = (Y_PA[1] + Y_MA[0]) / 2.0          # leg centre plane (-1.0)
+FOOT_Y = {1: 35.0, -1: -37.0}               # foot-lead plane outside the tibia arms (by cable side)
+FOOT_X = 4.5                                # foot-lead groove on the tibia, clear of the horn-screw heads
 
 
 def st_envelope():
@@ -467,6 +469,12 @@ def part_femur(g):
     U(s, pad_solid(mf, +1, up))
     U(s, pad_solid(mf, -1, up))
     U(s, box(38.0, xe, Y_MA[0], Y_PA[1], zb, -13.6))      # bridge under the tibia servo
+    # foot-lead fins on both arms: the lead snaps into the notch (it runs outside
+    # the tibia arms at y +35 / -37 so it crosses the knee on the tibia axis)
+    for (ya, yb, yl) in ((Y_PA[1] - 0.01, FOOT_Y[1] + 2.2, FOOT_Y[1]), (FOOT_Y[-1] - 2.2, Y_MA[0] + 0.01, FOOT_Y[-1])):
+        fin = box(11.0, 21.0, ya, yb, zb, 3.0)          # near the femur axis: the folding tibia never reaches here
+        D(fin, box(10.0, 22.0, yl - 1.7, yl + 1.7, -1.7, 4.0))
+        U(s, fin)
     mt = tibia_servo_m(g)
     # bosses from the arms to the tibia servo case faces (teardrop: printed lying down)
     for (x, y) in ST['holes_top']:
@@ -488,7 +496,8 @@ def part_femur(g):
         tools.append(hole(a, b, g.m2, up))
         a = _apply(mt, (x, y, Y_MA[0] + 2.2))
         tools.append(hole(a, b, 4.6, up))
-    return dict(solid=s, tools=tools, bed=(0, 0, -1), fillet_axis=(0, 0, 1), edge_break=True)
+    return dict(solid=s, tools=tools, bed=(0, 0, -1), fillet_axis=(0, 0, 1), edge_break=True,
+                fillet_skip=lambda p: 9.5 < p[0] < 22.5 and abs(p[1]) > 27.5 and p[2] > -3.0)
 
 
 def part_tibia(g):
@@ -525,15 +534,76 @@ def part_tibia(g):
     tools = []
     for side in (+1, -1):
         tools += horn_arm(mt, g, side, up, planes)[1]
+    tools += foot_switch_tools(g)
+    # foot-lead grooves (2.6 wide, 1.3 deep) down both outer faces: arm face, then the shank face
+    for ye, yt in ((Y_TP[1], yc + 8.0), (Y_TM[0], yc - 8.0)):
+        tools.append(obox((FOOT_X, ye, -24.25), (0, 0, 1), (1, 0, 0), 43.5, 2.6, 2.6))
+        a, b = (FOOT_X, ye, -46.0), (FOOT_X, yt, z_tip + 14.0)
+        L = math.dist(a, b)
+        n = _vec([0, b[1] - a[1], b[2] - a[2]])
+        tools.append(obox(tuple((a[k] + b[k]) / 2 for k in range(3)), n, (1, 0, 0), L + 3.0, 2.6, 2.6))
     return dict(solid=s, tools=tools, bed=(1, 0, 0), fillet_axis=(1, 0, 0), edge_break=True)
 
 
+# Omron D2F-01 pin-plunger micro-switch (12.8 x 5.8 x 6.5 mm, 2 x M2 holes 6.5 apart):
+# foot contact sensor in the tibia tip, sealed under the TPU boot.
+D2F = dict(L=12.8, W=5.8, H=6.5, hole_dx=3.25, hole_z=3.25, plunger_d=1.6, plunger_pressed=0.45)
+BOOT_TRAVEL = 1.0      # the boot slides 1 mm up the tip when loaded and presses the plunger
+
+
+def d2f_frame(g):
+    """Switch frame in the tibia frame: origin at the bottom face centre, +Z up."""
+    z_tip = -(g.Lt - 3.0 - 8.0)
+    return frame((0, g.yc, z_tip - 5.0), (1, 0, 0), (0, 0, 1))
+
+
+def d2f_envelope():
+    s = D2F
+    b = box(-s['L'] / 2, s['L'] / 2, -s['W'] / 2, s['W'] / 2, 0, s['H'])
+    U(b, cyl((0, 0, 0.01), (0, 0, -s['plunger_pressed']), s['plunger_d'] / 2))
+    for x in (-2.54, 0, 2.54):                       # PCB terminals
+        U(b, box(x - 0.4, x + 0.4, -0.25, 0.25, s['H'] - 0.01, s['H'] + 3.5))
+    for x in (-s['hole_dx'], s['hole_dx']):
+        D(b, cyl((x, -s['W'] / 2 - 0.1, s['hole_z']), (x, s['W'] / 2 + 0.1, s['hole_z']), 1.05))
+    return b
+
+
+def foot_switch_tools(g):
+    """Pocket (open to the +Y face, covered by the boot), plunger hole, 2 x M2
+    screw holes, terminal space and the wire channel up to a cross hole above the
+    boot."""
+    z_tip = -(g.Lt - 3.0 - 8.0)
+    yc = g.yc
+    zb = z_tip - 5.0
+    t = [box(-D2F['L'] / 2 - 0.2, D2F['L'] / 2 + 0.2, yc - D2F['W'] / 2 - 0.2, yc + 9.0, zb - 0.2, zb + D2F['H'] + 0.2),
+         cyl((0, yc, zb + 0.1), (0, yc, z_tip - 8.5), 1.1),                                   # plunger / nub hole
+         box(-4.0, 4.0, yc - 1.5, yc + 1.5, zb + D2F['H'], zb + D2F['H'] + 4.2),             # terminals
+         cyl((0, yc, zb + D2F['H'] + 3.0), (0, yc, z_tip + 16.0), 1.6),                      # wire channel
+         box(-1.6, FOOT_X + 1.6, yc - 12.0, yc + 12.0, z_tip + 14.4, z_tip + 17.6)]           # cross slot to both faces
+    for x in (-D2F['hole_dx'], D2F['hole_dx']):
+        t.append(cyl((x, yc - 9.0, zb + D2F['hole_z']), (x, yc, zb + D2F['hole_z']), 1.1))
+        t.append(cyl((x, yc - 9.0, zb + D2F['hole_z']), (x, yc - 6.8, zb + D2F['hole_z']), 2.1))   # head counterbore
+    # retention grooves for the boot's lips (both faces): 2.5 mm tall = lip 1.5 + 1 mm travel
+    for sg in (1, -1):
+        y0, y1 = sorted((yc + sg * 8.01, yc + sg * 7.2))
+        t.append(box(-12.0, 12.0, y0, y1, z_tip + 7.5, z_tip + 10.0))
+    return t
+
+
 def part_foot_boot(g):
+    """TPU boot: slides 1 mm on the tibia tip (lips in the tip's grooves); a nub in
+    the sole presses the foot switch's plunger when the foot is loaded.  Drawn in
+    the loaded (bottomed) position."""
     z_tip = -(g.Lt - 3.0 - 8.0)
     yc = g.yc
     outer = U(box(-16, 16, yc - 11, yc + 11, z_tip, z_tip + 12), cyl((-16, yc, z_tip), (16, yc, z_tip), 11.0))
     inner = U(box(-14.2, 14.2, yc - 8.2, yc + 8.2, z_tip, z_tip + 13), cyl((-14.2, yc, z_tip), (14.2, yc, z_tip), 8.2))
-    return dict(solid=outer, tools=[inner], bed=(0, 0, 1), fillet_axis=None, chamfer=False)
+    D(outer, inner)
+    U(outer, cyl((0, yc, z_tip - 8.6), (0, yc, z_tip - 5.0 - D2F['plunger_pressed'] - 0.05), 0.9))      # nub
+    for sg in (1, -1):                                                                               # lips
+        y0, y1 = sorted((yc + sg * 8.21, yc + sg * 7.4))
+        U(outer, box(-11.5, 11.5, y0, y1, z_tip + 8.5, z_tip + 10.0))
+    return dict(solid=outer, tools=[], bed=(0, 0, 1), fillet_axis=None, chamfer=False, fillet2=False)
 
 
 # ----------------------------------------------------------------------------
@@ -579,6 +649,43 @@ class Body:
         self.acs_holes = [(17.0 + 2.5, 51.5), (17.0 + 17.8, 51.5), (17.0 + 2.5, 64.3), (17.0 + 17.8, 64.3)]
         self.coxa_cable_side = {0: 1, 1: -1, 2: 1, 3: 1, 4: 1, 5: -1}
         self.hub_side_port = {k: -v for k, v in self.coxa_cable_side.items()}
+        # rev B2: control pod on the top-front of the top plate (Feather ESP32-S3 main
+        # controller + ExpressLRS receiver), IMU pod under the belly, foot-lead routes
+        self.pod = dict(x=27.0, y0=24.0, y1=108.0, h=13.0, floor=2.0, wall=2.0)
+        self.pod_floor_screws = [(20, 30), (-20, 30), (20, 70), (-20, 70)]     # into the top-plate grid inserts
+        self.pod_lid_bosses = [(23, 64), (-23, 64), (23, 80), (-23, 80)]
+        self.pod_floor_holes = [(21.5, 38.0, 6.0), (-20.0, 38.0, 7.0), (8.0, 34.0, 5.0), (20.0, 100.0, 6.0)]   # (x, y, d) entries from inside
+        self.pod_wall_entries = [40.0, 52.0, 70.0, 88.0]                        # foot leads (88 = spare) on both side walls
+        self.feather = dict(x=0.0, y_usb=106.0)                                 # Feather ESP32-S3, USB-C forward
+        self.rp1 = (-18.0, 93.5, 10.0, 11.0)                                    # ELRS receiver (cx, cy, w, h)
+        self.antenna = (-18.0, 99.0)
+        self.imu_c = (-10.0, -32.0)                                             # BNO085 board centre, under the belly
+        self.imu_pod = (-34.0, 8.0, -50.0, -14.0, 12.0)                         # x0, x1, y0, y1, depth
+        self.imu_inserts = [(-31.0, -47.0), (5.0, -47.0), (5.0, -17.0), (-31.0, -17.0)]
+        self.imu_hole = (-28.5, -40.0, 7.0)
+        # zip-tie slot pairs (centre, direction of the lead) for the foot leads on the top plate
+        self.top_ties = []
+        for (x, y, dx, dy) in ((34.5, -40.0, -0.24, 0.97), (39.7, 18.0, -0.22, 0.98), (33.25, 82.0, -0.21, 0.98)):
+            self.top_ties += [((x, y), (dx, dy)), ((-x, y), (-dx, dy))]
+
+    def foot_route(self, i):
+        """Foot-switch lead over the top plate (world frame, lying on the plate)
+        from where it comes down behind coxa i to its entry in the control pod's
+        side wall.  Right-side legs listed; left legs are the mirror image."""
+        zl, ze = Y_PP[1] + 0.9, Y_PP[1] + 5.0
+        right = [
+            [(35.0, 90.0), (31.5, 74.0), (29.5, 70.0)],                                     # 0 front: entry y 70
+            [(46.0, 0.0), (42.0, 8.0), (37.0, 30.0), (31.0, 50.0), (29.5, 52.0)],           # 1 middle: entry y 52
+            [(36.5, -75.0), (37.0, -50.0), (32.0, -30.0), (32.0, 18.0), (31.0, 34.0), (29.5, 40.0)],   # 2 rear: entry y 40
+        ][i % 3]
+        sx = 1 if i < 3 else -1
+        lg = self.legs[i]
+        d = lg['dir']
+        s0 = (lg['X'] - 27.0 * d[0], lg['Y'] - 27.0 * d[1], zl)
+        pts = [s0] + [(sx * x, y, zl) for (x, y) in right]
+        y_e = pts[-1][1]
+        pts += [(sx * 28.2, y_e, ze), (sx * 23.5, y_e, ze)]
+        return pts
 
     def coxa_servo_m(self, lg):
         dx, dy = lg['dir'][0], lg['dir'][1]
@@ -654,6 +761,15 @@ class Body:
             tools.append(pt)
             sx, sy, sw, sh = self.panel_slot
             tools.append(box(sx - sw / 2, sx + sw / 2, sy - sh / 2, sy + sh / 2, *zz))
+            # control-pod cable entries (the pod floor has matching holes)
+            for (x, y, dd) in self.pod_floor_holes:
+                tools.append(cyl((x, y, zz[0]), (x, y, zz[1]), dd / 2))
+            # zip-tie slot pairs either side of each foot lead
+            for ((x, y), (dx, dy)) in self.top_ties:
+                n = _vec([dx, dy, 0])
+                for side in (-1, 1):
+                    c = (x - n[1] * side * 4.0, y + n[0] * side * 4.0, (z0 + z1) / 2)
+                    tools.append(obox(c, (n[0], n[1], 0), (-n[1], n[0], 0), 3.2, 1.8, 20))
         else:
             for (x, y) in self.pillars:
                 if inside(y):
@@ -665,6 +781,11 @@ class Body:
                 if inside(y):
                     U(o, cyl((x, y, z1 - 0.01), (x, y, z1 + 4), 3.0))
                 tools.append(cyl((x, y, z1 - 3), (x, y, z1 + 5), 1.1))
+            # IMU pod: lead hole and four inserts (set from below)
+            ix, iy, idd = self.imu_hole
+            tools.append(cyl((ix, iy, zz[0]), (ix, iy, zz[1]), idd / 2))
+            for (x, y) in self.imu_inserts:
+                tools.append(cyl((x, y, zz[0]), (x, y, z0 + 4.5), g.ins / 2))
         tools = [t for t in tools if t is not None]
         return dict(solid=o, tools=tools, bed=(0, 0, -1), fillet_axis=(0, 0, 1), fillet_r=4.0,
                     fillet_skip=lambda p: abs(p[1] - seam) < 14 or abs(p[2] - z0) > 6)
@@ -757,8 +878,266 @@ def part_front_bracket(b, d):
     tools.append(box(-8, 8, yf - 4, yf + 1, Y_MP[1] + 1.0, Y_MP[1] + 11.0))   # USB-C access
     for (x, y) in b.bracket_inserts:
         tools.append(hole((x, y, zt - 1), (x, y, zt + 4), g.clr, up))
+    # VL53L1X time-of-flight sensor on a 30 deg wedge behind the front plate, looking
+    # forward-down at the ground ahead (terrain look-ahead / step detection)
+    F = tof_frame()
+    wedge = xf_body(box(-9.8, 9.8, -6.6, 14.0, -8.0, 0.0), F)
+    I(wedge, box(-60, 60, 0, yf - 0.01, zt + 2.99, 80))
+    U(s, wedge)
+    tools += [xf_body(t, F) for t in (
+        box(-9.3, 9.3, -6.75, 6.75, -2.8, 0.5),                       # carrier pocket
+        box(-5.5, 5.5, -4.5, 4.5, -0.5, 14.0),                        # window
+        cyl((0, -5.0, -2.6), (0, -5.0, -9.0), 1.6),                    # lead channel
+        cyl((6.36, 3.81, -2.6), (6.36, 3.81, -7.5), 0.8),             # M2 self-tapping x 2
+        cyl((-6.34, 3.81, -2.6), (-6.34, 3.81, -7.5), 0.8))]
     return dict(solid=s, tools=tools, bed=(0, 1, 0), fillet_axis=(1, 0, 0), fillet_r=3.0,
                 fillet_skip=lambda p: p[2] < zt + 1.0, edge_break=True)
+
+
+TOF = dict(o=(17.0, 131.0, 28.0), tilt=30.0)          # on the bracket's top flange, looking forward-down
+
+
+def tof_frame():
+    t = math.radians(TOF['tilt'])
+    return frame(TOF['o'], (1, 0, 0), (0, math.cos(t), -math.sin(t)))
+
+
+def tof_board_m():
+    """Pololu VL53L1X carrier STEP (12.7 x 17.8, sensor on +Z) -> tof frame."""
+    return chain(frame((8.9, -6.35, -2.6), (0, 1, 0), (0, 0, 1)), tof_frame())
+
+
+# ----------------------------------------------------------------------------
+# Control pod (Feather ESP32-S3 + ELRS receiver) and IMU pod
+# ----------------------------------------------------------------------------
+def feather_m(b):
+    """Adafruit 5323 STEP (board 0..50.8 x 0..22.86, USB-C at x = 0) -> world:
+    long side along -Y, USB-C facing forward at y = b.feather['y_usb']."""
+    return frame((b.feather['x'] - 11.43, b.feather['y_usb'], Y_PP[1] + b.pod['floor'] + 3.0), (0, -1, 0), (0, 0, 1))
+
+
+def feather_env():
+    b = box(0, 50.8, 0, 22.86, 0, 1.6)
+    U(b, box(9.0, 48.0, 1.5, 21.3, 1.59, 4.2))                 # ESP32-S3 module + parts
+    U(b, box(-1.1, 7.3, 7.4, 15.4, 1.59, 4.9))                 # USB-C
+    return b
+
+
+def feather_holes(b):
+    m = feather_m(b)
+    return [_apply(m, (x, y, 0))[:2] for (x, y) in ((2.54, 2.54), (2.54, 20.32), (48.26, 1.84), (48.26, 20.95))]
+
+
+def part_control_pod(b):
+    """Tray on the top-front of the top plate: Feather ESP32-S3 on 3 mm bosses, ELRS
+    receiver, cable entries from below and from both side walls (foot leads), USB-C
+    opening at the front.  Prints floor-down."""
+    g, p = b.g, b.pod
+    zt = Y_PP[1]
+    x, y0, y1, h, fl, w = p['x'], p['y0'], p['y1'], p['h'], p['floor'], p['wall']
+    s = box(-x, x, y0, y1, zt, zt + h)
+    D(s, box(-x + w, x - w, y0 + w, y1 - w, zt + fl, zt + h + 1))
+    up = (0, 0, 1)
+    tools = []
+    for (bx, by) in b.pod_lid_bosses:
+        U(s, cyl((bx, by, zt + fl - 0.01), (bx, by, zt + h), 3.5))
+        tools.append(cyl((bx, by, zt + h + 1), (bx, by, zt + h - 6), g.ins / 2))
+    for (fx, fy) in feather_holes(b):
+        U(s, cyl((fx, fy, zt + fl - 0.01), (fx, fy, zt + fl + 3.0), 2.5))
+        tools.append(cyl((fx, fy, zt + fl + 3.5), (fx, fy, zt + 0.8), 1.05))
+    for (sx_, sy_) in b.pod_floor_screws:
+        tools.append(cyl((sx_, sy_, zt - 1), (sx_, sy_, zt + fl + 1), g.clr / 2))
+    for (hx, hy, hd) in b.pod_floor_holes:
+        tools.append(cyl((hx, hy, zt - 1), (hx, hy, zt + fl + 1), hd / 2))
+    for ye in b.pod_wall_entries:
+        for sg in (1, -1):
+            tools.append(hole((sg * (x + 1), ye, zt + 5.0), (sg * (x - w - 1), ye, zt + 5.0), 3.2, up))
+    tools.append(box(-7.0, 7.0, y1 - w - 2.5, y1 + 1, zt + 5.2, zt + 12.0))          # Feather USB-C
+    tools.append(hole((17.0, y1 + 1, zt + 5.0), (17.0, y1 - w - 1, zt + 5.0), 3.2, up))   # ToF lead from the front bracket
+    # (the receiver sits on foam tape between the Feather and the left wall)
+    return dict(solid=s, tools=tools, bed=(0, 0, -1), fillet_axis=(0, 0, 1), fillet_r=2.0, edge_break=True)
+
+
+def part_control_pod_lid(b):
+    """Flat lid with the receiver's antenna post (the stock T-antenna stands
+    vertically in it, clear of the Feather's ground plane and any metal)."""
+    g, p = b.g, b.pod
+    zt = Y_PP[1] + p['h']
+    s = box(-p['x'], p['x'], p['y0'], p['y1'], zt, zt + 2.0)
+    ax, ay = b.antenna
+    U(s, cyl((ax, ay, zt + 1.99), (ax, ay, zt + 32.0), 3.0))
+    tools = [cyl((ax, ay, zt - 1), (ax, ay, zt + 33.0), 1.6)]
+    for (bx, by) in b.pod_lid_bosses:
+        tools.append(cyl((bx, by, zt - 1), (bx, by, zt + 3), g.clr / 2))
+    for k in range(4):                                            # vents over the Feather
+        tools.append(box(-9.0, 9.0, 62.0 + k * 8.0, 64.0 + k * 8.0, zt - 1, zt + 3))
+    return dict(solid=s, tools=tools, bed=(0, 0, -1), fillet_axis=(0, 0, 1), fillet_r=2.0, edge_break=True)
+
+
+def bno_m(b):
+    """Adafruit 4754 STEP (25.4 x 22.86, components +Z) -> world, under the belly."""
+    cx, cy = b.imu_c
+    return frame((cx - 12.7, cy - 11.43, Y_MP[0] - b.imu_pod[4] + 2.0 + 3.0), (1, 0, 0), (0, 0, 1))
+
+
+def part_imu_pod(b):
+    """Cover under the bottom plate near the centre of mass: BNO085 on four
+    TPU-grommet bosses (vibration isolation), lead up through the plate.  Prints
+    bottom-down."""
+    g = b.g
+    x0, x1, y0, y1, dp = b.imu_pod
+    zt = Y_MP[0]
+    s = box(x0, x1, y0, y1, zt - dp, zt)
+    D(s, box(x0 + 2, x1 - 2, y0 + 2, y1 - 2, zt - dp + 2.0, zt + 1))
+    tools = []
+    for (x, y) in b.imu_inserts:
+        U(s, cyl((x, y, zt - dp + 0.01), (x, y, zt), 3.5))
+        tools.append(cyl((x, y, zt - dp - 1), (x, y, zt + 1), g.clr / 2))
+        tools.append(cyl((x, y, zt - dp - 1), (x, y, zt - dp + 2.5), 3.1))
+    m = bno_m(b)
+    for (hx, hy) in ((2.54, 2.54), (2.54, 20.32), (22.86, 2.54), (22.86, 20.32)):
+        x, y, _ = _apply(m, (hx, hy, 0))
+        U(s, cyl((x, y, zt - dp + 1.99), (x, y, zt - dp + 5.0), 2.5))
+        tools.append(cyl((x, y, zt - dp + 5.5), (x, y, zt - dp + 0.8), 1.05))
+    return dict(solid=s, tools=tools, bed=(0, 0, -1), fillet_axis=(0, 0, 1), fillet_r=2.0, edge_break=True)
+
+
+# ----------------------------------------------------------------------------
+# Brain module (swappable top-deck autonomy module): Raspberry Pi 5 + active
+# cooler, Luxonis OAK-D Lite, LDROBOT LD19 LiDAR, Pololu D36V50F5 5 V / 5.5 A buck.
+# It slides onto the same dovetail as any attachment and plugs into J1.
+# ----------------------------------------------------------------------------
+BR = dict(x=53.0, y0=-80.0, y1=22.0, top=69.0, wall=2.0, pi=(-49.0, -76.0), pi_so=12.0,
+          buck=(-47.5, -10.0), buck_so=7.0, ld19=(-8.0, -40.0),
+          lid_bosses=[(49.5, -78.5), (-49.5, -78.5), (49.5, 19.5), (-49.5, 19.5)])
+PI5 = dict(L=85.0, W=56.0, holes=[(3.5, 3.5), (61.5, 3.5), (3.5, 52.5), (61.5, 52.5)])
+
+
+def brain_floor_z(g):
+    return g.z_top + QR['base_h']            # rests on the receiver's top face
+
+
+def part_brain_base(b):
+    """Dovetail rail + floor + walls + standoffs (one print, floor down)."""
+    g = b.g
+    sc = g.slide
+    z0 = brain_floor_z(g)
+    zf = g.z_top + QR['floor'] + sc
+    y0r = QR['y_rear'] + QR['stop'] + sc
+    s = dovetail(zf, z0 + 0.01, QR['hw_bot'] - sc, QR['hw_top'] - sc, y0r, QR['y_front'])
+    X, w = BR['x'], BR['wall']
+    U(s, box(-X, X, BR['y0'], BR['y1'], z0, z0 + 5.0))
+    walls = box(-X, X, BR['y0'], BR['y1'], z0 + 4.99, BR['top'])
+    D(walls, box(-X + w, X - w, BR['y0'] + w, BR['y1'] - w, z0, BR['top'] + 1))
+    U(s, walls)
+    zfl = z0 + 5.0
+    tools = [box(QR['key_x'][0] - 0.3, QR['key_x'][1] + 0.3, y0r - 1, QR['y_front'] + 1, zf - 1, zf + QR['key_h'] + 0.3 - sc)]
+    px, py = BR['pi']
+    for (hx, hy) in PI5['holes']:
+        U(s, cyl((px + hx, py + hy, zfl - 0.01), (px + hx, py + hy, zfl + BR['pi_so']), 3.0))
+        tools.append(cyl((px + hx, py + hy, zfl + BR['pi_so'] + 1), (px + hx, py + hy, zfl + BR['pi_so'] - 6), 1.05))
+    bx, by = BR['buck']
+    for (hx, hy) in ((2.16, 2.16), (23.24, 2.16), (2.16, 23.24)):
+        U(s, cyl((bx + hx, by + hy, zfl - 0.01), (bx + hx, by + hy, zfl + BR['buck_so']), 2.6))
+        tools.append(cyl((bx + hx, by + hy, zfl + BR['buck_so'] + 1), (bx + hx, by + hy, zfl + BR['buck_so'] - 5), 0.9))
+    for (lx, ly) in BR['lid_bosses']:
+        U(s, cyl((lx, ly, BR['top'] - 8.0), (lx, ly, BR['top']), 3.0))
+        tools.append(cyl((lx, ly, BR['top'] + 1), (lx, ly, BR['top'] - 6), g.ins / 2))
+    # J1 plug and lock screw (the hex key reaches it through the lid)
+    yr = QR['y_rear']
+    tools.append(box(-11.6, 11.6, yr - 10.6, yr - 3.6, z0 - 1, zfl + 1))
+    lx, ly = QR['lock_brain']
+    tools.append(cyl((lx, ly, z0 - 1), (lx, ly, zfl + 1), g.clr / 2))
+    tools.append(cyl((lx, ly, zfl - 2.0), (lx, ly, zfl + 1), 3.1))
+    # side vents (Pi 5 active cooler exhaust) and the camera-cable hole
+    for k in range(8):
+        yv = -68.0 + k * 9.0
+        for sg in (1, -1):
+            tools.append(box(sg * X - 3, sg * X + 3, yv, yv + 3.0, z0 + 17.0, z0 + 33.0) if sg > 0 else
+                         box(-X - 3, -X + 3, yv, yv + 3.0, z0 + 17.0, z0 + 33.0))
+    tools.append(hole((CAM_CABLE_X, BR['y1'] - 3, 52.0), (CAM_CABLE_X, BR['y1'] + 4, 52.0), 6.0, (0, 0, 1)))
+    for xs in (30.0, -30.0):                                            # camera-mount screws (from inside)
+        tools.append(hole((xs, BR['y1'] - 3, 55.0), (xs, BR['y1'] + 1, 55.0), g.clr, (0, 0, 1)))
+    return dict(solid=s, tools=tools, bed=(0, 0, -1), fillet_axis=(0, 0, 1), fillet_r=2.0, edge_break=True,
+                fillet_skip=lambda p: abs(p[0]) < 16.5 and p[2] < z0 + 0.5)
+
+
+def part_brain_lid(b):
+    g = b.g
+    X = BR['x']
+    zt = BR['top']
+    s = box(-X, X, BR['y0'], BR['y1'], zt, zt + 2.0)
+    lx, ly = BR['ld19']
+    tools = [cyl((lx, ly, zt - 1), (lx, ly, zt + 3), 4.0)]                 # LD19 lead
+    for (dx, dy) in ((-20.0, -17.0), (20.0, -17.0), (-20.0, 17.0), (20.0, 17.0)):
+        tools.append(cyl((lx + dx, ly + dy, zt - 1), (lx + dx, ly + dy, zt + 3), 1.4))   # LD19 base screws (M2.5)
+    bx, by = QR['lock_brain']
+    tools.append(cyl((bx, by, zt - 1), (bx, by, zt + 3), 3.5))             # hex-key access to the lock screw
+    for (px, py) in BR['lid_bosses']:
+        tools.append(cyl((px, py, zt - 1), (px, py, zt + 3), g.clr / 2))
+    for k in range(5):
+        tools.append(box(28.0, 46.0, -70.0 + k * 9.0, -67.0 + k * 9.0, zt - 1, zt + 3))   # vents over the Pi ports
+    return dict(solid=s, tools=tools, bed=(0, 0, -1), fillet_axis=None, edge_break=True)
+
+
+OAK = dict(back=30.0, bottom=38.0)
+CAM_CABLE_X = 20.0                         # OAK USB-C cable passes the front wall and the mount here
+
+
+def oak_m():
+    """Luxonis DM9095 enclosure STEP (x along the baseline, y up, lenses on -z) -> world:
+    lenses forward (+Y), centred on x = 0, back face at y = OAK['back']."""
+    return frame((-41.0, OAK['back'] + 8.77, OAK['bottom'] + 3.02), (1, 0, 0), (0, -1, 0))
+
+
+def oak_envelope():
+    return box(-4.5, 86.5, -3.0, 25.0, -9.0, 8.8)
+
+
+def part_brain_cam_mount(b):
+    """Camera bracket screwed to the outside of the brain's front wall: back plate,
+    a shelf under the OAK-D Lite and two standoffs to its rear M2 holes.  Prints
+    back-plate down."""
+    g = b.g
+    y0 = BR['y1']
+    s = box(-46.0, 46.0, y0, y0 + 3.0, 34.6, 62.0)
+    U(s, box(-46.0, 46.0, y0 + 2.99, OAK['back'] + 17.7, OAK['bottom'] - 2.5, OAK['bottom']))
+    zc = OAK['bottom'] + 3.02 + 8.5
+    for xs in (-37.5, 37.5):
+        U(s, cyl((xs, y0 + 2.99, zc), (xs, OAK['back'] - 0.2, zc), 3.0))
+    tools = []
+    for xs in (-37.5, 37.5):      # M2 x 12 from the back plate into the camera's rear holes (fit before the bracket)
+        tools.append(hole((xs, y0 - 1, zc), (xs, OAK['back'] + 1, zc), 2.4, (0, 1, 0)))
+        tools.append(hole((xs, y0 - 1, zc), (xs, y0 + 2.0, zc), 4.2, (0, 1, 0)))
+    tools += [hole((xs, y0 - 1, 55.0), (xs, y0 + 4, 55.0), g.ins, (0, 1, 0)) for xs in (30.0, -30.0)]
+    tools.append(hole((CAM_CABLE_X, y0 - 1, 52.0), (CAM_CABLE_X, y0 + 4, 52.0), 6.0, (0, 1, 0)))
+    return dict(solid=s, tools=tools, bed=(0, -1, 0), fillet_axis=(0, 1, 0), fillet_r=2.0, edge_break=True)
+
+
+def pi5_envelope():
+    """Raspberry Pi 5 + Active Cooler, board frame (85 x 56, ports on the x = 85 edge)."""
+    b = box(0, PI5['L'], 0, PI5['W'], 0, 1.6)
+    U(b, box(66.0, PI5['L'] + 2.5, 2.0, 54.0, 1.59, 17.6))            # USB / Ethernet stacks
+    U(b, box(7.1, 57.9, 49.5, 54.5, 1.59, 10.1))                     # GPIO header
+    return b
+
+
+def pi5_cooler():
+    """Raspberry Pi Active Cooler envelope (heatsink + fan), Pi board frame."""
+    return box(10.0, 60.0, 8.0, 48.0, 3.2, 13.0)
+
+
+def d36v50_env():
+    b = box(0, 25.4, 0, 25.4, 0, 1.6)
+    U(b, box(4.5, 21.0, 4.5, 21.0, 1.59, 3.4))
+    U(b, box(5.0, 20.0, 5.0, 20.0, -6.1, 0.01))                # inductor underneath
+    return b
+
+
+def ld19_envelope():
+    b = box(-27.0, 27.0, -23.15, 23.15, 0, 8.0)
+    U(b, cyl((0, 0, 7.99), (0, 0, 34.8), 19.3))
+    return b
 
 
 def dovetail(z_bot, z_top, hw_bot, hw_top, y0, y1):
@@ -771,7 +1150,7 @@ def dovetail(z_bot, z_top, hw_bot, hw_top, y0, y1):
 
 
 QR = dict(base_h=8.0, floor=2.0, hw_bot=14.0, hw_top=10.0, key_x=(4.0, 8.0), key_h=2.0,
-          y_rear=-44.0, y_front=20.0, stop=4.0, lock=(24.0, -36.0))
+          y_rear=-44.0, y_front=20.0, stop=4.0, lock=(24.0, -36.0), lock_brain=(25.0, -10.0))
 
 
 def part_qr_receiver(b):
@@ -792,8 +1171,11 @@ def part_qr_receiver(b):
         tools.append(cyl((x, y, z0 + 3), (x, y, zt + 1), 3.25))
     lx, ly = QR['lock']
     tools.append(cyl((lx, ly, zt + 1), (lx, ly, zt - 6), g.ins / 2))
-    # J1 attachment port: JST-XH 6-pin (GND, GND, VBAT, VBAT, +5V, BUS DATA), through to the pass-through
-    tools.append(box(-8.9, 8.9, yr - 10.2, yr - 4.0, z0 - 1, zt + 1))
+    bx, by = QR['lock_brain']
+    tools.append(cyl((bx, by, zt + 1), (bx, by, zt - 6), g.ins / 2))
+    # J1 attachment port: JST-XH 8-pin (GND, GND, VBAT, VBAT, +5V, BUS DATA, AUX1, AUX2),
+    # through to the pass-through.  AUX1/AUX2 = fire / aux for weapons, or the UART to the brain module.
+    tools.append(box(-11.2, 11.2, yr - 10.2, yr - 4.0, z0 - 1, zt + 1))
     return dict(solid=s, tools=tools, bed=(0, 0, -1), fillet_axis=None, edge_break=True,
                 fillet_skip=lambda p: abs(p[0]) < 16.5)   # the dovetail slot is a sliding fit: keep it sharp
 
@@ -825,6 +1207,7 @@ def part_qr_adapter(b):
 PORT_X, PORT_Z, PORT_Y = 13.9, -8.5, ST['W']
 PLUG_L = 9.0
 R_BUS, R_PWR, R_SIG = 1.6, 1.7, 1.0      # 3-core bus lead, 14 AWG silicone, 26 AWG signal
+R_FOOT, R_I2C = 0.8, 1.1                 # 2-core 28 AWG foot lead, 4-core 28 AWG (I2C / UART) lead
 
 
 def pipe(pts, r):
@@ -932,8 +1315,63 @@ class Harness:
         cables.append(('ACS724 signal', 0.8, [(ax0 - 0.5, ay0 + 8, -9.5), (15.8, ay0 + 8, -9.5)]))
         yf = self.sonar_y
         zc = self.sonar_z
-        cables.append(('Sonar', R_SIG, [(0, yf - 5.0, zc), (0, yf - 9, zc - 4), (0, 123, -2.5), (-8, 123, -5.0)]))
+        zp = Y_PP[1] + B.pod['floor'] + 3.0 + 2.2          # Feather pad height (wires soldered to the pads)
+        zi = Y_PP[1] + 3.2                                  # inside the pod, just above the floor
+        # front sensors -> control pod (through the plate at (20, 100))
+        cables.append(('Sonar', R_SIG, [(0, yf - 5.0, zc), (0, yf - 9, zc + 2), (10, 116, 8), (20.0, 104, 10), (20.0, 100, 14),
+                                        (20.0, 100, zi), (12.6, 95.5, zp)]))
+        F = tof_frame()
+        c0, c1, c2 = _apply(F, (0, -5.0, -2.6)), _apply(F, (0, -5.0, -9.5)), _apply(F, (0, 10.0, -10.0))
+        cables.append(('ToF sensor', R_FOOT, [c0, c1, c2, (17.0, 112.0, zi + 1.6), (17.0, 103.0, zi + 1.6), (12.6, 100.5, zp)]))
+        # IMU (under the belly) -> through the bottom plate -> left corridor -> pod
+        cx, cy = B.imu_c
+        ix, iy, _ = B.imu_hole
+        zpod = Y_MP[0] - B.imu_pod[4] + 2.0 + 3.0 + 2.5
+        cables.append(('IMU lead', R_I2C, [(cx - 14.1, cy, zpod), (-25.5, -36, zpod), (ix, iy, zpod), (ix, iy, 4.0), (-24, -34, 10.5),
+                                           (-24, 30, 10.5), (-21.6, 38, 13.5), (-21.6, 38, zi), (-12.6, 59.5, zp)]))
+        # 5 V for the Feather from the D36V28F5 buck
+        cables.append(('Feather 5V', R_FOOT, [(-21.0, 68.0, 3.5), (-19.5, 60, 8), (-18.4, 42, 8), (-18.4, 38, 12), (-18.4, 38, zi),
+                                              (-12.6, 56.0, zp)]))
+        # Feather <-> servo-bus bridge (Waveshare board, header pins 21/22 as UART)
+        cables.append(('Bridge UART', R_I2C, [(13.0, 64.0, -2.4), (14.0, 57, -1.0), (13.0, 48, 6.0), (16.0, 44, 7.0), (21.0, 41, 8.0),
+                                              (21.5, 38, 12.0), (21.5, 38, zi), (12.6, 56.0, zp)]))
+        # J1 AUX1/AUX2 (weapon fire / brain UART) -> J1 on the receiver
+        cables.append(('J1 aux', R_FOOT, [(6.0, 54.4, zp), (8.0, 34, zi), (8.0, 34, 12.5), (7.0, 30, 11.9), (7.0, -52, 11.9),
+                                          (7.0, -50, 16.8), (3.0, -50, 19.0), (3.0, -50, zt + 3.0)]))
+        # foot leads over the top plate into the pod's side walls, then to the Feather
+        pin_y = {40.0: 63.0, 52.0: 70.0, 70.0: 78.0}
+        for i in range(6):
+            pts = B.foot_route(i)
+            sx = 1 if i < 3 else -1
+            if sx < 0 and pts[-1][1] == 40.0:
+                pin = 64.0
+            else:
+                pin = pin_y[pts[-1][1]]
+            cables.append(('Foot lead plate %d' % i, R_FOOT, pts + [(sx * 12.6, pin, zp)]))
+        # ELRS receiver -> Feather, and its antenna up the lid post
+        rx, ry, rw, rh = B.rp1
+        cables.append(('Receiver CRSF', R_I2C, [(rx + rw / 2 + 0.2, ry, zi + 0.3), (-12.6, ry - 2.0, zp)]))
+        ax, ay = B.antenna
+        cables.append(('Receiver antenna', 0.7, [(ax, ry + rh / 2 + 0.2, zi + 0.4), (ax, ay, zi + 3.0), (ax, ay, Y_PP[1] + B.pod['h'] + 30.0)]))
         return cables, plugs
+
+    def brain(self):
+        """Cables inside the brain module (world frame)."""
+        z0 = brain_floor_z(self.g) + 5.0
+        px, py = BR['pi']
+        bx, by = BR['buck']
+        hdr_y = py + 52.5
+        out = [('Brain power', R_I2C, [(-1.5, -51.0, z0 - 4.0), (-1.5, -51.0, z0 + 4.0), (-20.0, -30.0, z0 + 4.0), (-35.0, by - 1.2, z0 + 4.0),
+                                         (-35.0, by - 1.2, z0 + BR['buck_so'] + 1.0)]),
+               ('Brain UART', R_FOOT, [(1.8, -51.0, z0 - 4.0), (1.8, -51.0, z0 + 5.0), (1.8, -17.0, z0 + 5.0), (1.8, -17.0, z0 + 25.0),
+                                       (px + 17.5, -18.0, z0 + 25.0), (px + 17.5, hdr_y, z0 + BR['pi_so'] + 11.0)]),
+               ('Brain 5V Pi', R_I2C, [(-24.0, by - 1.2, z0 + BR['buck_so'] + 1.0), (px + 9.6, -15.0, z0 + 14.0), (px + 9.6, -21.0, z0 + 20.0),
+                                       (px + 9.6, hdr_y, z0 + BR['pi_so'] + 11.0)]),
+               ('OAK USB', 2.0, [(px + PI5['L'] + 6.0, py + 9.0, z0 + 21.0), (48.5, py + 16.0, z0 + 21.0), (48.5, 10.0, z0 + 21.0),
+                                 (CAM_CABLE_X, 16.0, 52.0), (CAM_CABLE_X, OAK['back'] - 2.3, 52.0)]),
+               ('LD19 lead', R_I2C, [(BR['ld19'][0], BR['ld19'][1], BR['top'] + 3.0), (BR['ld19'][0], BR['ld19'][1], BR['top'] - 3.0),
+                                     (px + 30.0, -14.0, z0 + 29.0), (px + 20.0, hdr_y, z0 + BR['pi_so'] + 11.0)])]
+        return out
 
     # -- legs ---------------------------------------------------------------
     COXA_HUB = (17.0, 0.0, 29.125)          # 3-socket bus hub on the coxa's top arm (centre of the PCB underside)
@@ -967,9 +1405,27 @@ class Harness:
         out['coxa'].append(('Bus hub-femur', R_BUS, [h_f, (h_f[0], h_f[1], zc + 15.5), (28.5, PORT_Z, zc + 15.5), (28.5, PORT_Z, 12), (70, PORT_Z, 12), (70, PORT_Z, pf[2]), pf]))
         out['coxa'].append(('Bus hub-tibia A', R_BUS, [h_t, (h_t[0], h_t[1], zc + 19.5), (28.5, yf * 31.5, zc + 19.5), (28.5, yf * 31.5, 12), (Lc, yf * 31.5, 0)]))
         out['femur'].append(('Bus hub-tibia B', R_BUS, [(0, yf * 31.5, 0), (20, yf * 31.5, 24.5), (20, yf * 12, 24.5), (pt_out[0], PORT_Z, 24.5), pt_out]))
+        # foot-switch lead (2-core 28 AWG silicone): crosses the coxa axis high above
+        # the hub, runs outside the leg at y = FOOT_Y and crosses the femur and knee
+        # axes on the axis; down the tibia it lies in the face grooves.
+        yl = FOOT_Y[s]
+        tz = -(g.Lt - 3.0 - 8.0)
+        face = (Y_TP[1] - 0.5) if s > 0 else (Y_TM[0] + 0.5)
+        ye_ = Y_TP[1] if s > 0 else Y_TM[0]
+        yb_ = g.yc + 8.0 * s
+        fr = (tz + 16.0 + 46.0) / (tz + 14.0 + 46.0)
+        yt = ye_ + (yb_ - ye_) * fr - 0.5 * s                      # groove centre line at the cross slot, 0.5 mm in
+        zx = 52.0
+        out['body'].append(('Foot lead A', R_FOOT, [(0, 0, zx), (-12, 0, zx), (-20, 0, 28.0), (-27, 0, Y_PP[1] + 0.9)]))
+        out['coxa'].append(('Foot lead B', R_FOOT, [(0, 0, zx), (10, 0.5 * yl, zx), (28.5, yl, 45.0), (28.5, yl, 12.0), (Lc, yl, 0)]))
+        out['femur'].append(('Foot lead C', R_FOOT, [(0, yl, 0), (g.Lf, yl, 0)]))
+        face_out = (Y_TP[1] + 1.0) if s > 0 else (Y_TM[0] - 1.0)
+        out['tibia'] = [('Foot lead D', R_FOOT, [(0, yl, 0), (FOOT_X, face_out, -3.0), (FOOT_X, face, -5.0), (FOOT_X, face, -46.0), (FOOT_X, yt, tz + 16.0),
+                                                   (0, g.yc, tz + 16.0), (0, g.yc, tz - 5.0 + D2F['H'] + 3.5)])]
         out['plugs_body'] = [('Plug coxa servo', plug_c)]
         out['plugs_coxa'] = [('Plug femur', plug_f)]
         out['plugs_femur'] = [('Plug tibia', plug_to)]
+        out['plugs_tibia'] = []
         return out
 
 
@@ -991,6 +1447,12 @@ VENDOR = {
     'PololuD36V28': 'd36v28fx-step-down-voltage-regulators.step',
     'PololuBigMOSFET': 'big-mosfet-slide-switch-with-reverse-voltage-protection.step',
     'PololuACS724': 'acs724-current-sensor-carrier.step',
+    'Feather': '5323 Feather ESP32-S3.step',
+    'BNO085': '4754 BNO085 STEMMA QT.step',
+    'VL53L1X': 'vl53l1x-carrier.step',
+    'PololuD36V50': 'd36v50fx-step-down-voltage-regulator.step',
+    'OAKDLite': 'DM9095_enclosure.stp',
+    'RPi5': 'rpi5.step',
 }
 
 
@@ -1126,7 +1588,21 @@ def try_chamfer(comp, body, bed, dist):
             return edges.count
         except Exception:
             continue
-    return 0
+    # all-at-once failed (usually a tiny edge where a hole meets the bed face):
+    # chamfer edge by edge and skip the ones that won't take it
+    n = 0
+    for e in list(bed_edges(body, bed)):
+        one = adsk.core.ObjectCollection.create()
+        one.add(e)
+        inp = comp.features.chamferFeatures.createInput2()
+        inp.chamferEdgeSets.addEqualDistanceChamferEdgeSet(one, adsk.core.ValueInput.createByReal(cm(dist * 0.6)), False)
+        try:
+            comp.features.chamferFeatures.add(inp)
+            n += 1
+            body = comp.bRepBodies.item(0)
+        except Exception:
+            pass
+    return n
 
 
 def add_body(comp, temp, name):
@@ -1271,6 +1747,9 @@ MASS_G = {  # bought parts (datasheet / listing values), grams
     'ServoDriverESP32': 15.0, 'PololuD36V28': 3.0, 'PololuBigMOSFET': 4.0, 'PololuACS724': 2.0,
     'BusHub': 12.0, 'HC-SR04': 9.0, 'FuseHolder_ATC': 15.0, 'RockerSwitch_KCD1': 3.0,
     'XT60_socket': 4.0, 'BalanceSocket': 2.0,
+    'Feather_ESP32-S3': 6.0, 'BNO085': 3.0, 'VL53L1X': 0.5, 'ELRS_RP1': 1.5, 'D2F_switch': 0.8,
+    # brain module (counts as the top attachment)
+    'RaspberryPi5_8GB': 46.0, 'Pi5_ActiveCooler': 21.0, 'OAK-D-Lite': 61.0, 'LD19': 47.0, 'D36V50F5': 7.0, 'microSD': 0.5,
 }
 JOINT_LIMITS = {'coxa': (-45, 45), 'femur': (-70, 10), 'tibia': (-120, 45)}   # Fusion sign: +femur = down, +tibia = fold in
 
@@ -1362,11 +1841,16 @@ def build(out_dir=None, use_vendor=True):
             body_occs.append(plates[nm])
     for nm, fn in (('BatteryTray', lambda: part_battery_tray(B)), ('ElectronicsCarrier', lambda: part_electronics_carrier(B)),
                    ('PowerPanel', lambda: part_power_panel(B)), ('FrontSensorBracket', lambda: part_front_bracket(B, design)),
-                   ('QR_Receiver', lambda: part_qr_receiver(B))):
+                   ('QR_Receiver', lambda: part_qr_receiver(B)), ('ControlPod', lambda: part_control_pod(B)),
+                   ('ControlPodLid', lambda: part_control_pod_lid(B)), ('ImuPod', lambda: part_imu_pod(B))):
         body_occs.append(place(nm, fn, I3(), ORANGE))
-    body_occs.append(place('QR_AdapterPlate_Example', lambda: part_qr_adapter(B), I3(), BLUE))
-    body_occs.append(place('STS3032', sts3032_envelope,
-                           frame((0, -10, g.z_top + QR['base_h'] + 5 + STS3032['H'] - 4), (1, 0, 0), (0, 0, 1)), BLUE))
+    # the turret example and the brain module share the top mount: the brain is shown,
+    # the turret example is kept (hidden) for its STL and sim mesh
+    turret = [place('QR_AdapterPlate_Example', lambda: part_qr_adapter(B), I3(), BLUE),
+              place('STS3032', sts3032_envelope, frame((0, -10, g.z_top + QR['base_h'] + 5 + STS3032['H'] - 4), (1, 0, 0), (0, 0, 1)), BLUE)]
+    for o in turret:
+        o.isLightBulbOn = False
+    body_occs += turret
 
     # electronics
     zb = Y_MP[1]
@@ -1383,6 +1867,15 @@ def build(out_dir=None, use_vendor=True):
                                   frame((ax0 + aw / 2, ay0 + ah / 2, zb + 4.0), (1, 0, 0), (0, 0, 1)), BLUE))
     body_occs.append(place_vendor('PololuD36V28F5', 'PololuD36V28', _board_matrix_from_step(17.78, 20.32), board_env(17.8, 20.3, 7.7),
                                   hang(*slots[1]), BLUE))
+    # rev B2 control electronics: Feather ESP32-S3 + ELRS receiver in the pod, BNO085 under the
+    # belly, VL53L1X on the front bracket (vendor STEPs are placed in their own frames)
+    I_ = adsk.core.Matrix3D.create()
+    body_occs.append(place_vendor('Feather_ESP32-S3', 'Feather', I_, feather_env, feather_m(B), BLUE))
+    body_occs.append(place_vendor('BNO085_IMU', 'BNO085', I_, lambda: box(0, 25.4, 0, 22.86, 0, 4.55), bno_m(B), BLUE))
+    body_occs.append(place_vendor('VL53L1X_ToF', 'VL53L1X', I_, lambda: box(0, 12.7, 0, 17.78, 0, 2.2), tof_board_m(), BLUE))
+    rx, ry, rw, rh = B.rp1
+    body_occs.append(place('ELRS_RP1_Receiver', lambda: box(rx - rw / 2, rx + rw / 2, ry - rh / 2, ry + rh / 2, Y_PP[1] + 2.0, Y_PP[1] + 5.5),
+                           I3(), BLACK))
 
     def hub():
         b_ = box(-9, 9, -9, 9, 0, 1.6)
@@ -1421,6 +1914,28 @@ def build(out_dir=None, use_vendor=True):
         body_occs.append(place(name, lambda t=temp: t, I3(), PLUG))
     harness_report = [dict(cable=n, d_mm=2 * r, length_mm=round(sum(math.dist(a, b) for a, b in zip(p[:-1], p[1:])), 0)) for n, r, p in cables]
 
+    # brain module (autonomy): on the top mount instead of the turret example
+    brain_occs = []
+    z0b = brain_floor_z(g) + 5.0
+    for nm, fn in (('BrainBase', lambda: part_brain_base(B)), ('BrainLid', lambda: part_brain_lid(B)),
+                   ('BrainCamMount', lambda: part_brain_cam_mount(B))):
+        brain_occs.append(place(nm, fn, I3(), ('Plastic - Matte (Grey)', 'Plastic - Matte (Gray)', 'Plastic - Matte (Blue)')))
+    px_, py_ = BR['pi']
+    pi_m = frame((px_, py_, z0b + BR['pi_so']), (1, 0, 0), (0, 0, 1))
+    brain_occs.append(place_vendor('RaspberryPi5', 'RPi5', I_, pi5_envelope, pi_m, ('Plastic - Matte (Green)',)))
+    brain_occs.append(place('Pi5_ActiveCooler', pi5_cooler, pi_m, METAL))
+    brain_occs.append(place_vendor('OAK-D-Lite', 'OAKDLite', I_, oak_envelope, oak_m(), METAL))
+    bxb, byb = BR['buck']
+    brain_occs.append(place_vendor('PololuD36V50F5', 'PololuD36V50', I_, d36v50_env,
+                                   frame((bxb, byb, z0b + BR['buck_so']), (1, 0, 0), (0, 0, 1)), BLUE))
+    brain_occs.append(place('LD19_LiDAR', ld19_envelope, frame((BR['ld19'][0], BR['ld19'][1], BR['top'] + 2.0), (1, 0, 0), (0, 0, 1)), BLACK))
+    brain_cables = H.brain()
+    for name, r, pts in brain_cables:
+        brain_occs.append(place('Harness ' + name, lambda pts=pts, r=r: pipe(pts, r), I3(), WIRE))
+    harness_report += [dict(cable=n, d_mm=2 * r, length_mm=round(sum(math.dist(a, b) for a, b in zip(p[:-1], p[1:])), 0), module='brain')
+                       for n, r, p in brain_cables]
+    body_occs += brain_occs
+
     # legs
     servo_env = st_envelope
     leg_groups, lines = [], {}
@@ -1438,13 +1953,14 @@ def build(out_dir=None, use_vendor=True):
         tibia_m = chain(frame((g.Lf, 0, 0), (1, 0, 0), (0, 0, 1)), femur_m)
         ti = place('Tibia', lambda: part_tibia(g), tibia_m, ORANGE)
         bo = place('FootBoot_TPU', lambda: part_foot_boot(g), tibia_m, BLACK)
+        fsw = place('FootSwitch_D2F', d2f_envelope, chain(d2f_frame(g), tibia_m), BLACK)
         sd = B.coxa_cable_side[i]
         tag = '' if sd > 0 else ' (mirror side)'
         LH = H.leg(sd)
-        h_body, h_coxa, h_femur = [], [], []
+        h_body, h_coxa, h_femur, h_tibia = [], [], [], []
         hx_, hy_, hz_ = Harness.COXA_HUB
         h_coxa.append(place('CoxaBusHub_3x5264', coxa_hub_env, chain(frame((hx_, hy_, hz_), (1, 0, 0), (0, 0, 1)), coxa_m), ('Plastic - Matte (Green)',)))
-        for grp, m_, lst in (('body', coxa_m, h_body), ('coxa', coxa_m, h_coxa), ('femur', femur_m, h_femur)):
+        for grp, m_, lst in (('body', coxa_m, h_body), ('coxa', coxa_m, h_coxa), ('femur', femur_m, h_femur), ('tibia', tibia_m, h_tibia)):
             for (n_, r_, p_) in LH[grp]:
                 lst.append(place('Harness ' + n_ + tag, lambda p_=p_, r_=r_: pipe(p_, r_), m_, WIRE))
             for (n_, t_) in LH['plugs_' + grp]:
@@ -1456,10 +1972,10 @@ def build(out_dir=None, use_vendor=True):
             lines['Tibia'] = axis_line(cache['Tibia'], (0, -35, 0), (0, 35, 0))
         body_occs.append(cs)
         if i == 0:
-            for grp in ('body', 'coxa', 'femur'):
+            for grp in ('body', 'coxa', 'femur', 'tibia'):
                 for n_, r_, p_ in LH[grp]:
                     harness_report.append(dict(cable=n_ + ' (x6)', d_mm=2 * r_, length_mm=round(sum(math.dist(a, b) for a, b in zip(p_[:-1], p_[1:])), 0)))
-        leg_groups.append((i, [cx, cc, fs] + h_coxa, [fe, ts] + h_femur, [ti, bo]))
+        leg_groups.append((i, [cx, cc, fs] + h_coxa, [fe, ts] + h_femur, [ti, bo, fsw] + h_tibia))
 
     plates['Plate_Top_Rear'].isGrounded = True
     rigid(root, body_occs, 'Body group')
@@ -1475,9 +1991,15 @@ def build(out_dir=None, use_vendor=True):
 
     # mass estimate: printed volume x 1.24 g/cm3 x 0.6 effective fill (PLA/PETG), TPU 1.21 x 0.8
     printed_g = 0.0
+    brain_printed_g = 0.0
     for row in log:
         q = counts.get(row['part'], 1)
         if row['part'] == 'QR_AdapterPlate_Example':
+            continue
+        if row['part'].startswith('Brain'):
+            row['qty'] = q
+            row['est_g_each'] = round(row['volume_cm3'] * 1.24 * 0.6, 1)
+            brain_printed_g += row['est_g_each']
             continue
         rho, fill = (1.21, 0.8) if 'TPU' in row['part'] else (1.24, 0.6)
         row['qty'] = q
@@ -1486,13 +2008,17 @@ def build(out_dir=None, use_vendor=True):
     bought_g = (12 * MASS_G['ST3215'] + 6 * MASS_G['STS3250'] + MASS_G['Battery_3S_4000'] + MASS_G['ServoDriverESP32']
                 + MASS_G['PololuD36V28'] + MASS_G['PololuBigMOSFET'] + MASS_G['PololuACS724'] + MASS_G['BusHub']
                 + MASS_G['HC-SR04'] + MASS_G['FuseHolder_ATC'] + MASS_G['RockerSwitch_KCD1'] + MASS_G['XT60_socket']
-                + MASS_G['BalanceSocket'])
-    hardware_g = 110.0   # M3/M2 screws, 150 inserts, washers
-    wiring_g = 90.0      # 18 bus-servo leads, 14 AWG power, XT60s, balance lead
+                + MASS_G['BalanceSocket'] + MASS_G['Feather_ESP32-S3'] + MASS_G['BNO085'] + MASS_G['VL53L1X']
+                + MASS_G['ELRS_RP1'] + 6 * MASS_G['D2F_switch'])
+    hardware_g = 120.0   # M3/M2 screws, ~170 inserts, washers, TPU grommets
+    wiring_g = 125.0     # 18 bus-servo leads, 14 AWG power, XT60s, balance lead, 6 foot leads, sensor leads
     total_g = printed_g + bought_g + hardware_g + wiring_g
+    brain_g = (brain_printed_g + MASS_G['RaspberryPi5_8GB'] + MASS_G['Pi5_ActiveCooler'] + MASS_G['OAK-D-Lite'] + MASS_G['LD19']
+               + MASS_G['D36V50F5'] + MASS_G['microSD'] + 25.0)   # + cables and screws
     report = dict(parts=log, harness=harness_report, joints=root.asBuiltJoints.count, occurrences=root.allOccurrences.count,
                   vendor_models=vendor_used, use_vendor=use_vendor,
-                  mass_g=dict(printed=round(printed_g), bought=round(bought_g), hardware=hardware_g, wiring=wiring_g, total=round(total_g)),
+                  mass_g=dict(printed=round(printed_g), bought=round(bought_g), hardware=hardware_g, wiring=wiring_g, total=round(total_g),
+                              brain_module=round(brain_g), brain_module_printed=round(brain_printed_g)),
                   frames=dict(top_plate_top=Y_PP[1], top_plate_bottom=Y_PP[0], bottom_plate_top=Y_MP[1], bottom_plate_bottom=Y_MP[0],
                               arm_planes=dict(plus=Y_PA, minus=Y_MA), leg_centre_plane=Y_LEG,
                               coxa_lowest=-38.5, attachment_datum=Y_PP[1] + QR['base_h'] + 5.0))
@@ -1520,7 +2046,10 @@ def export_stls(printed, stl_dir):
 
 MESH_GROUPS = {'Body group': 'body', 'Leg0 coxa group': 'coxa', 'Leg0 femur group': 'femur', 'Leg0 tibia group': 'tibia'}
 MESH_SPLIT = {'QR_Receiver': 'qr_receiver', 'QR_AdapterPlate_Example': 'qr_adapter_example', 'STS3032': 'qr_adapter_example',
-              'HC-SR04': 'sonar_example'}
+              'HC-SR04': 'sonar_example',
+              'BrainBase': 'brain_module', 'BrainLid': 'brain_module', 'BrainCamMount': 'brain_module', 'RaspberryPi5': 'brain_module',
+              'OAK-D-Lite': 'brain_module', 'PololuD36V50F5': 'brain_module', 'LD19_LiDAR': 'brain_module',
+              'Pi5_ActiveCooler': 'brain_module'}
 
 
 def export_mesh_raw(out):

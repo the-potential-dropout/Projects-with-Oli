@@ -104,14 +104,21 @@ def gen_harness():
 
 
 def _intended(pair):
+    """Contacts that are meant to be there: cable ends in their plugs or on their board
+    terminals, splices of one cable at a joint axis, and the brain module vs the turret
+    example (alternative fits of the same top mount)."""
     a, b = pair.split('/')
-    fam = lambda n: re.sub(r' [ABC]( \(mirror side\))?$', '', n)
+    fam = lambda n: re.sub(r' (?:[A-D]|plate \d)( \(mirror side\))?$', '', n)
     if a.startswith('Harness') and b.startswith('Harness') and fam(a) == fam(b):
         return True
     names = (a, b)
     if any(n.startswith('Plug') for n in names) and any(n.startswith('Harness') for n in names):
         return True
-    boards = ('BusHub', 'CoxaBusHub', 'ServoDriver', 'PololuD36', 'HC-SR04', 'XT60', 'FuseHolder', 'BalanceSocket', 'PololuACS', 'PololuBig')
+    brain = lambda n: n.startswith('Brain') or n in ('RaspberryPi5', 'OAK-D-Lite', 'LD19_LiDAR', 'PololuD36V50F5') or         n.startswith(('Harness Brain', 'Harness OAK', 'Harness LD19'))
+    if any(brain(n) for n in names) and any(n in ('QR_AdapterPlate_Example', 'STS3032') for n in names):
+        return True
+    boards = ('BusHub', 'CoxaBusHub', 'ServoDriver', 'PololuD36', 'HC-SR04', 'XT60', 'FuseHolder', 'BalanceSocket', 'PololuACS',
+              'PololuBig', 'Feather', 'BNO085', 'VL53L1X', 'ELRS', 'RaspberryPi5', 'LD19', 'OAK-D-Lite', 'FootSwitch')
     return any(n.startswith('Harness') for n in names) and any(x in pair for x in boards)
 
 

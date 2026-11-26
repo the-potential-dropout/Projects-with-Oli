@@ -4,40 +4,40 @@
   "x": 137.0,
   "y": 122.0,
   "z": 5.0,
-  "volume_cm3": 63.88,
+  "volume_cm3": 63.22,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 5164
+  "triangles": 6168
  },
  {
   "part": "Plate_Top_Rear",
   "x": 137.0,
   "y": 150.0,
   "z": 5.0,
-  "volume_cm3": 82.86,
+  "volume_cm3": 82.66,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 5620
+  "triangles": 7834
  },
  {
   "part": "Plate_Bottom_Front",
   "x": 137.0,
   "y": 150.0,
   "z": 35.4,
-  "volume_cm3": 96.75,
+  "volume_cm3": 96.69,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 16820
+  "triangles": 17036
  },
  {
   "part": "Plate_Bottom_Rear",
   "x": 137.0,
   "y": 122.0,
   "z": 35.4,
-  "volume_cm3": 69.26,
+  "volume_cm3": 68.97,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 6316
+  "triangles": 7114
  },
  {
   "part": "BatteryTray",
@@ -71,23 +71,53 @@
  },
  {
   "part": "FrontSensorBracket",
-  "x": 50.0,
-  "y": 43.4,
+  "x": 51.8,
+  "y": 59.3,
   "z": 19.0,
-  "volume_cm3": 6.95,
+  "volume_cm3": 8.78,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 2544
+  "triangles": 3394
  },
  {
   "part": "QR_Receiver",
   "x": 60.0,
   "y": 78.0,
   "z": 8.0,
-  "volume_cm3": 26.5,
+  "volume_cm3": 26.19,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 8644
+  "triangles": 9468
+ },
+ {
+  "part": "ControlPod",
+  "x": 54.0,
+  "y": 84.0,
+  "z": 13.0,
+  "volume_cm3": 15.8,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 19160
+ },
+ {
+  "part": "ControlPodLid",
+  "x": 54.0,
+  "y": 84.0,
+  "z": 3.4,
+  "volume_cm3": 8.67,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 2988
+ },
+ {
+  "part": "ImuPod",
+  "x": 43.0,
+  "y": 37.0,
+  "z": 12.0,
+  "volume_cm3": 6.45,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 18092
  },
  {
   "part": "QR_AdapterPlate_Example",
@@ -98,6 +128,36 @@
   "fits_220": true,
   "fits_180": true,
   "triangles": 6100
+ },
+ {
+  "part": "BrainBase",
+  "x": 106.0,
+  "y": 104.0,
+  "z": 48.0,
+  "volume_cm3": 91.6,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 23248
+ },
+ {
+  "part": "BrainLid",
+  "x": 106.0,
+  "y": 102.0,
+  "z": 2.0,
+  "volume_cm3": 20.62,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 10872
+ },
+ {
+  "part": "BrainCamMount",
+  "x": 92.0,
+  "y": 27.4,
+  "z": 25.7,
+  "volume_cm3": 12.82,
+  "fits_220": true,
+  "fits_180": true,
+  "triangles": 4992
  },
  {
   "part": "CoxaMain",
@@ -122,31 +182,31 @@
  {
   "part": "Femur",
   "x": 68.0,
-  "y": 54.2,
+  "y": 76.4,
   "z": 34.3,
-  "volume_cm3": 27.42,
+  "volume_cm3": 32.25,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 12550
+  "triangles": 12642
  },
  {
   "part": "Tibia",
   "x": 131.0,
   "y": 67.2,
   "z": 28.0,
-  "volume_cm3": 86.85,
+  "volume_cm3": 84.45,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 10364
+  "triangles": 11660
  },
  {
   "part": "FootBoot_TPU",
   "x": 32.0,
   "y": 22.0,
   "z": 23.0,
-  "volume_cm3": 5.94,
+  "volume_cm3": 6.0,
   "fits_220": true,
   "fits_180": true,
-  "triangles": 508
+  "triangles": 734
  }
 ]

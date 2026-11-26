@@ -7,7 +7,7 @@ transform ("occ", keyed by file name) and the world transforms of leg 0's Coxa,
 Femur and Tibia occurrences ("ref"), all as Fusion cm, row-major 4x4.
 
 Output (robot-sim/cad/mesh/<group>.glb), units metres, +Y up:
-  body, qr_receiver, qr_adapter_example, sonar_example
+  body, qr_receiver, qr_adapter_example, sonar_example, brain_module
         origin = body centre (half way between the plates, femur-axis height),
         +Z forward, +X robot left.
   coxa  origin on the coxa axis at femur-axis height, leg along +X.
@@ -65,7 +65,7 @@ def inv_rigid(m):
 
 
 def frame_fn(group, refs):
-    if group in ('body', 'qr_receiver', 'qr_adapter_example', 'sonar_example'):
+    if group in ('body', 'qr_receiver', 'qr_adapter_example', 'sonar_example', 'brain_module'):
         return lambda p: (-p[0] / 1000, p[2] / 1000, p[1] / 1000)
     loc = inv_rigid(refs[group])
     if group in ('coxa', 'femur'):

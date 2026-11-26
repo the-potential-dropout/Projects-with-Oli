@@ -72,6 +72,14 @@ src/bot.js            Bot AI
 src/game.js           Main loop, camera, HUD, match logic
 src/input.js          Keyboard, mouse, gamepad, touch
 src/twin.js           Digital twin panel + USB (Web Serial) link
-firmware/             Arduino/ESP32 sketch that drives the real servos
-docs/BUILD.md         Parts list and how to build the real robot
+firmware/             Robot firmware: hexapod_controller (Feather ESP32-S3: gait, balance, terrain,
+                      radio, safety), bus_bridge (servo board), test (PC unit tests), hexapod_bridge (rev B)
+radio/                EdgeTX Lua screens + channel map for the RadioMaster / ExpressLRS radio
+autonomy/             MuJoCo model (sim2real), training env, URDF for ROS 2
+cad/                  Fusion generator, STLs, sim meshes, vendor CAD fetcher, load / sweep / cut-list scripts
+docs/BUILD.md         How to build, wire, charge and flash the real robot
+docs/DESIGN.md        Mechanical design and load check     docs/KINEMATICS.md   leg architecture study
+docs/CONTROL.md       Onboard control system               docs/WIRING.md       every wire, cut list
+docs/ELECTRONICS.md   Shopping list                        docs/AUTONOMY.md     radio, brain module, ROS 2, MuJoCo
+docs/notebook/        Engineering design notebook (python docs/notebook/build_notebook.py)
 ```

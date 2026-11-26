@@ -24,6 +24,16 @@ FILES = [
     ('d36v28fx-step-down-voltage-regulators.step', 'https://www.pololu.com/file/0J1660/d36v28fx-step-down-voltage-regulators.step', None),
     ('big-mosfet-slide-switch-with-reverse-voltage-protection.step', 'https://www.pololu.com/file/0J1406/big-mosfet-slide-switch-with-reverse-voltage-protection.step', None),
     ('acs724-current-sensor-carrier.step', 'https://www.pololu.com/file/0J1985/acs724-current-sensor-carrier.step', None),
+    # rev B2 control / autonomy parts
+    ('d36v50fx-step-down-voltage-regulator.step', 'https://www.pololu.com/file/0J1733/d36v50fx-step-down-voltage-regulator.step', None),
+    ('vl53l1x-carrier.step', 'https://www.pololu.com/file/0J1195/vl53l0x-vl53l1x-vl53l3cx-vl53l4cd-carrier-model.step', None),
+    # Adafruit_CAD_Parts (official Adafruit GitHub, MIT licence)
+    ('4754 BNO085 STEMMA QT.step', 'https://raw.githubusercontent.com/adafruit/Adafruit_CAD_Parts/main/4754%20BNO085%20STEMMA%20QT/4754%20BNO085%20STEMMA%20QT.step', None),
+    ('5323 Feather ESP32-S3.step', 'https://raw.githubusercontent.com/adafruit/Adafruit_CAD_Parts/main/5323%20Feather%20ESP32-S3/5323%20Feather%20ESP32-S3.step', None),
+    # Luxonis (linked from github.com/luxonis/depthai-hardware, MIT licence)
+    ('DM9095_enclosure.stp', 'https://oak-files.fra1.cdn.digitaloceanspaces.com/OAK-D-Lite/DM9095_enclosure.stp', None),
+    # Raspberry Pi product information portal (public, no login)
+    ('rpi5.step', 'https://pip-assets.raspberrypi.com/categories/892-raspberry-pi-5/documents/RP-010083-CA-1-rpi-5%203D%20STEP%20-%20No%20Graphics%20small%20file.zip', '*.step'),
 ]
 
 
@@ -34,6 +44,7 @@ def fetch(url):
 
 
 def main():
+    failed = []
     for name, url, member in FILES:
         dest = os.path.join(HERE, name)
         if os.name == 'nt' and not dest.startswith(LONG):
@@ -41,15 +52,26 @@ def main():
         if os.path.exists(dest):
             print('have', name)
             continue
-        data = fetch(url)
+        try:
+            data = fetch(url)
+        except Exception as e:           # keep going: the generator falls back to envelopes
+            print('FAILED', name, e)
+            failed.append(name)
+            continue
         if member:
             with zipfile.ZipFile(io.BytesIO(data)) as z:
+                if member == '*.step':           # first STEP file in the archive
+                    member = next(n for n in z.namelist() if n.lower().endswith(('.step', '.stp')))
                 data = z.read(member)
-        if name.endswith('.step') and not data.startswith(b'ISO-10303-21'):
-            sys.exit('%s does not look like a STEP file - not saved' % name)
+        if name.endswith(('.step', '.stp')) and not data.startswith(b'ISO-10303-21'):
+            print('%s does not look like a STEP file - not saved' % name)
+            failed.append(name)
+            continue
         with open(dest, 'wb') as f:
             f.write(data)
         print('saved', name, len(data), 'bytes')
+    if failed:
+        sys.exit('failed: ' + ', '.join(failed))
 
 
 if __name__ == '__main__':

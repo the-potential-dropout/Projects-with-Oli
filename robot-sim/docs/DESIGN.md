@@ -1,4 +1,4 @@
-# Hexapod Mk1 (rev B): mechanical design
+# Hexapod Mk1 (rev B2): mechanical design
 
 ![Hexapod Mk1 rev B in Fusion, with the manufacturers' servo and board models and the full harness](img/hexapod_mk1_iso.png)
 
@@ -9,6 +9,20 @@ Rev B rebuilds Mk1 around **Feetech serial-bus servos** and a **3S LiPo power sy
 - Every wire, cable and connector is modelled.
 
 Every printed part was redesigned around the measured servo geometry. Rev A (MG996R PWM servos and a 2S pack) is described in the [design notebook](notebook/), together with why it changed.
+
+**Rev B2** keeps this mechanism and adds the control and autonomy hardware:
+
+| Addition | Where it's documented |
+| --- | --- |
+| Leg architecture trade study (the 3-DOF leg stays) | [KINEMATICS.md](KINEMATICS.md) |
+| Onboard Feather ESP32-S3 controller in a sealed **control pod** on the top-front | [CONTROL.md](CONTROL.md) |
+| BNO085 IMU in a pod under the belly | [CONTROL.md](CONTROL.md) |
+| **Omron foot switches** sealed in the tibia tips | [CONTROL.md](CONTROL.md) |
+| VL53L1X look-ahead on the front bracket | [CONTROL.md](CONTROL.md) |
+| ExpressLRS receiver for an EdgeTX radio | [radio/README.md](../radio/README.md) |
+| Swappable **brain module** (Pi 5, OAK-D Lite, LD19) | [AUTONOMY.md](AUTONOMY.md) |
+| Full harness re-design | [WIRING.md](WIRING.md) |
+| MuJoCo model for sim2real | [autonomy/mujoco](../autonomy/mujoco) |
 
 | File | What it is |
 | --- | --- |
@@ -71,9 +85,11 @@ Rated and stall torques are the manufacturer and distributor figures (Feetech vi
 
 ## 3. Load check
 
-**Case.** Tripod stance (three feet down) carrying the whole robot (2.86 kg, CAD estimate) plus the heaviest top attachment (0.4 kg). Each foot carries F = m·g/3 = 10.7 N.
+**Case.** Tripod stance (three feet down) carrying the whole robot (2.96 kg rev B2, CAD estimate) plus the heaviest top attachment (0.4 kg; the brain module is 0.30 kg). Each foot carries F = m·g/3 = 11.0 N.
 
-**Stance limit.** The stance must stay inside the load envelope: every stance foot 80–115 mm from its coxa axis (`leg.footReachMin/Max` in the config, nominal `footReach` 100 mm). The uncapped gait (sprint + turn + strafe) can ask for feet out to 194 mm. That would need 16 kg·cm at the femur, and no affordable servo carries that at a 2× margin, so the gait must clamp foot targets to this ring (simulator task).
+**Stance limit.** The stance must stay inside the load envelope: every stance foot 80–115 mm from its coxa axis (`leg.footReachMin/Max` in the config, nominal `footReach` 100 mm).
+
+The uncapped gait (sprint + turn + strafe) can ask for feet out to 194 mm. That would need 16 kg·cm at the femur, and no affordable servo carries that at a 2× margin. So the onboard gait applies a **stance-window rule**: it steps faster, then slows the body, so the feet stay inside 80–115 mm. The host test at sprint plus turn holds 86–115 mm (CONTROL.md §5). The simulator should mirror it.
 
 **How each torque is worked out** ([load_calc.py](../cad/load_calc.py)), with the coxa-joint height at 90 mm:
 
@@ -83,13 +99,22 @@ Rated and stall torques are the manufacturer and distributor figures (Feetech vi
 
 | Joint | Servo | Required | Rated (12 V) | **Margin vs rated** | Margin vs stall |
 | --- | --- | --- | --- | --- | --- |
-| Coxa | STS3215 | 3.75 kg·cm (0.37 N·m) | 10 kg·cm | **2.67×** | 8.0× |
-| Femur | STS3250 | 7.61 kg·cm (0.75 N·m) | 16 kg·cm | **2.10×** | 6.6× |
-| Tibia | STS3215 | 3.90 kg·cm (0.38 N·m) | 10 kg·cm | **2.56×** | 7.7× |
-| Femur (budget: STS3215) | STS3215 | 7.53 kg·cm | 10 kg·cm | 1.33× | 4.0× |
+| Coxa | STS3215 | 3.87 kg·cm (0.38 N·m) | 10 kg·cm | **2.59×** | 7.8× |
+| Femur | STS3250 | 7.84 kg·cm (0.77 N·m) | 16 kg·cm | **2.04×** | 6.4× |
+| Tibia | STS3215 | 4.02 kg·cm (0.39 N·m) | 10 kg·cm | **2.49×** | 7.5× |
+| Femur (budget: STS3215) | STS3215 | 7.77 kg·cm | 10 kg·cm | 1.29× | 3.9× |
 | Femur, rev A stance (feet to 176 mm), STS3215 | | 14.2 kg·cm | 10 kg·cm | 0.70× | 2.1× |
 
-**Mass** (iterated with the real parts): printed 1.01 kg, bought parts 1.65 kg (12 × 69 g STS3215, 6 × 74.5 g STS3250, 305 g battery, boards), screws and inserts 0.11 kg, harness 0.09 kg. **Total 2.86 kg.**
+**Mass** (rev B2, from `cad/build_report.json`):
+- **Printed:** 1.05 kg, including the control pod, IMU pod and foot-switch features.
+- **Bought parts:** 1.67 kg. That is 12 × 69 g STS3215, 6 × 74.5 g STS3250, the 305 g battery, the Feather, IMU, ToF, receiver, six foot switches and the boards.
+- **Screws, inserts, grommets:** 0.12 kg.
+- **Harness:** 0.125 kg.
+- **Total 2.96 kg.**
+
+The brain module adds **0.30 kg** (93 g printed, Pi 5 + cooler 67 g, OAK-D Lite 61 g, LD19 47 g, buck and cables 32 g). It is inside the 0.4 kg attachment allowance the load case already covers, so the femur margin with the brain is about 2.1×.
+
+**MuJoCo check.** The generated model (`autonomy/mujoco/test_stand.py`) stands at 89 mm with the femurs at 0.22 N·m, and walks with the firmware gait.
 
 ## 4. Joint limits and collision check
 
@@ -198,7 +223,8 @@ Attachments make any 5 V or 6 V they need themselves with a small buck converter
 
 | State | Current at 11.1 V | Notes |
 | --- | --- | --- |
-| Logic only (servos relaxed) | ≈ 0.2 A | Driver ESP32 (Wi-Fi off), buck, sensors |
+| Logic only (servos relaxed) | ≈ 0.25 A | Feather, bridge ESP32 (Wi-Fi off), receiver, IMU, ToF, 5 V buck |
+| Brain module (Pi 5 + OAK-D Lite + LD19) | ≈ 1.3–1.6 A | about 14 W through J1 (5 A PTC) |
 | Standing, holding | ≈ 2 A | Femurs at about 2.6 kg·cm each on six feet |
 | Walking (average) | ≈ 4–6 A | Estimated from the load case |
 | Peak (all servos accelerating) | ≈ 25 A for tens of ms | 18 × about 1.4 A |
@@ -207,10 +233,10 @@ Attachments make any 5 V or 6 V they need themselves with a small buck converter
 **Battery:** Gens Ace 3S 4000 mAh 50–60C LiPo with XT60 (138.5 × 43 × 24.5 mm, about 305 g).
 
 - 4 Ah × 80 % usable = 3.2 Ah.
-- **Walking at 4–6 A gives 32–48 min (≥ 30 min ✓).** Standing at 2 A gives about 95 min.
+- **Walking at 4–6 A gives 32–48 min (≥ 30 min ✓).** With the brain module running: 26–36 min (32–36 min at typical walking). Standing at 2 A gives about 95 min. A second pack swaps from the rear in under a minute.
 - The pack can deliver 200 A, so the fuse and wiring are the limits: 14 AWG, 20 A ATC.
 
-The low-voltage cutoff is in firmware: below 10.2 V (3.4 V/cell) for 3 s, all servos relax and the robot reports `LOW` over USB. Charging procedures are in BUILD.md.
+The low-voltage cutoff is in firmware: below 10.2 V (3.4 V/cell) for 3 s, all servos relax. The robot reports `LOW` over USB and `LOWBAT` on the radio screen. Charging procedures are in BUILD.md, and every wire and fuse is in WIRING.md.
 
 ## 10. Other things to consider
 
@@ -224,7 +250,7 @@ The low-voltage cutoff is in firmware: below 10.2 V (3.4 V/cell) for 3 s, all se
 - **Tolerances.** Print a coupon of one servo pocket (both faces) and the dovetail first. The servo case is a moulding; sand the pocket rather than forcing it. Trim each joint in `servos.trim` after assembly (BUILD.md).
 - **Future upgrades.**
   - Read back servo positions to drive the sim (true twin).
-  - IMU on the driver's I²C header.
-  - Foot contact sensing from servo load.
+  - Servo-load contact as a backup for the foot switches.
   - STS3250 on the tibias too, for heavier payloads.
-- **Cost.** About US$1,200 with STS3250 femurs; about US$730 with all STS3215 (itemised in ELECTRONICS.md). The six STS3250s are more than half of it.
+  - Self-righting behaviour on the brain.
+- **Cost.** About US$1,340 for the robot with STS3250 femurs; about US$880 with all STS3215. Add US$230 for the radio and about US$350 for the brain module (itemised in ELECTRONICS.md). The six STS3250s are still the largest item.

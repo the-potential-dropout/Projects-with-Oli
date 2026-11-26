@@ -1,10 +1,10 @@
 {
  "body": {
-  "triangles": 43454,
+  "triangles": 71496,
   "bbox_m": [
    [
     -0.0901,
-    -0.0216,
+    -0.0336,
     -0.134
    ],
    [
@@ -14,13 +14,19 @@
    ]
   ],
   "parts": [
+   "BNO085_IMU",
    "BalanceSocket_XH4",
    "BatteryTray",
    "Battery_3S_4000",
    "BusHub_5x5264",
+   "ControlPod",
+   "ControlPodLid",
+   "ELRS_RP1_Receiver",
    "ElectronicsCarrier",
+   "Feather_ESP32-S3",
    "FrontSensorBracket",
    "FuseHolder_ATC_20A",
+   "ImuPod",
    "Plate_Bottom_Front",
    "Plate_Bottom_Rear",
    "Plate_Top_Front",
@@ -32,8 +38,33 @@
    "RockerSwitch_KCD1",
    "ST3215",
    "ServoDriverESP32",
+   "VL53L1X_ToF",
    "XT60_pair",
    "XT60_socket"
+  ]
+ },
+ "brain_module": {
+  "triangles": 16366,
+  "bbox_m": [
+   [
+    -0.053,
+    0.021,
+    -0.0815
+   ],
+   [
+    0.053,
+    0.1058,
+    0.0478
+   ]
+  ],
+  "parts": [
+   "BrainBase",
+   "BrainCamMount",
+   "BrainLid",
+   "LD19_LiDAR",
+   "OAK-D-Lite",
+   "PololuD36V50F5",
+   "RaspberryPi5"
   ]
  },
  "coxa": {
@@ -58,17 +89,17 @@
   ]
  },
  "femur": {
-  "triangles": 9280,
+  "triangles": 9016,
   "bbox_m": [
    [
     -0.014,
     -0.0195,
-    -0.0261
+    -0.0372
    ],
    [
     0.0851,
     0.0148,
-    0.0281
+    0.0392
    ]
   ],
   "parts": [
@@ -96,7 +127,7 @@
   ]
  },
  "qr_receiver": {
-  "triangles": 3724,
+  "triangles": 4104,
   "bbox_m": [
    [
     -0.03,
@@ -132,7 +163,7 @@
   ]
  },
  "tibia": {
-  "triangles": 5114,
+  "triangles": 6772,
   "bbox_m": [
    [
     -0.014,
@@ -147,6 +178,7 @@
   ],
   "parts": [
    "FootBoot_TPU",
+   "FootSwitch_D2F",
    "Tibia"
   ]
  }

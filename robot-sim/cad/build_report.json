@@ -12,12 +12,12 @@
     122.0,
     5.0
    ],
-   "volume_cm3": 63.87,
+   "volume_cm3": 63.21,
    "fillets": 0,
-   "chamfer_edges": 52,
+   "chamfer_edges": 60,
    "edge_breaks": 0,
    "qty": 1,
-   "est_g_each": 47.5
+   "est_g_each": 47.0
   },
   {
    "part": "Plate_Top_Rear",
@@ -31,12 +31,12 @@
     150.0,
     5.0
    ],
-   "volume_cm3": 82.85,
+   "volume_cm3": 82.64,
    "fillets": 0,
-   "chamfer_edges": 0,
+   "chamfer_edges": 62,
    "edge_breaks": 0,
    "qty": 1,
-   "est_g_each": 61.6
+   "est_g_each": 61.5
   },
   {
    "part": "Plate_Bottom_Front",
@@ -50,9 +50,9 @@
     150.0,
     35.4
    ],
-   "volume_cm3": 96.79,
+   "volume_cm3": 96.73,
    "fillets": 12,
-   "chamfer_edges": 64,
+   "chamfer_edges": 65,
    "edge_breaks": 0,
    "qty": 1,
    "est_g_each": 72.0
@@ -69,12 +69,12 @@
     122.0,
     35.4
    ],
-   "volume_cm3": 69.28,
+   "volume_cm3": 68.98,
    "fillets": 2,
-   "chamfer_edges": 48,
+   "chamfer_edges": 32,
    "edge_breaks": 0,
    "qty": 1,
-   "est_g_each": 51.5
+   "est_g_each": 51.3
   },
   {
    "part": "BatteryTray",
@@ -141,16 +141,16 @@
     0
    ],
    "extents_mm": [
-    50.0,
+    51.8,
     19.0,
-    43.4
+    59.3
    ],
-   "volume_cm3": 6.95,
-   "fillets": 0,
-   "chamfer_edges": 14,
+   "volume_cm3": 8.78,
+   "fillets": 5,
+   "chamfer_edges": 18,
    "edge_breaks": 4,
    "qty": 1,
-   "est_g_each": 5.2
+   "est_g_each": 6.5
   },
   {
    "part": "QR_Receiver",
@@ -164,12 +164,69 @@
     78.0,
     8.0
    ],
-   "volume_cm3": 26.49,
+   "volume_cm3": 26.19,
    "fillets": 2,
    "chamfer_edges": 18,
-   "edge_breaks": 23,
+   "edge_breaks": 24,
    "qty": 1,
-   "est_g_each": 19.7
+   "est_g_each": 19.5
+  },
+  {
+   "part": "ControlPod",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    54.0,
+    84.0,
+    13.0
+   ],
+   "volume_cm3": 15.8,
+   "fillets": 28,
+   "chamfer_edges": 12,
+   "edge_breaks": 32,
+   "qty": 1,
+   "est_g_each": 11.8
+  },
+  {
+   "part": "ControlPodLid",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    54.0,
+    84.0,
+    3.4
+   ],
+   "volume_cm3": 8.67,
+   "fillets": 1,
+   "chamfer_edges": 25,
+   "edge_breaks": 2,
+   "qty": 1,
+   "est_g_each": 6.5
+  },
+  {
+   "part": "ImuPod",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    43.0,
+    37.0,
+    12.0
+   ],
+   "volume_cm3": 6.45,
+   "fillets": 44,
+   "chamfer_edges": 12,
+   "edge_breaks": 56,
+   "qty": 1,
+   "est_g_each": 4.8
   },
   {
    "part": "QR_AdapterPlate_Example",
@@ -187,6 +244,63 @@
    "fillets": 3,
    "chamfer_edges": 14,
    "edge_breaks": 8
+  },
+  {
+   "part": "BrainBase",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    106.0,
+    104.0,
+    48.0
+   ],
+   "volume_cm3": 91.6,
+   "fillets": 51,
+   "chamfer_edges": 8,
+   "edge_breaks": 38,
+   "qty": 1,
+   "est_g_each": 68.2
+  },
+  {
+   "part": "BrainLid",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    106.0,
+    102.0,
+    2.0
+   ],
+   "volume_cm3": 20.62,
+   "fillets": 0,
+   "chamfer_edges": 36,
+   "edge_breaks": 22,
+   "qty": 1,
+   "est_g_each": 15.3
+  },
+  {
+   "part": "BrainCamMount",
+   "bed": [
+    0,
+    -1,
+    0
+   ],
+   "extents_mm": [
+    92.0,
+    25.7,
+    27.4
+   ],
+   "volume_cm3": 12.82,
+   "fillets": 4,
+   "chamfer_edges": 9,
+   "edge_breaks": 4,
+   "qty": 1,
+   "est_g_each": 9.5
   },
   {
    "part": "CoxaMain",
@@ -235,15 +349,15 @@
    ],
    "extents_mm": [
     68.0,
-    54.2,
+    76.4,
     34.3
    ],
-   "volume_cm3": 27.41,
-   "fillets": 10,
-   "chamfer_edges": 10,
+   "volume_cm3": 32.25,
+   "fillets": 15,
+   "chamfer_edges": 22,
    "edge_breaks": 20,
    "qty": 6,
-   "est_g_each": 20.4
+   "est_g_each": 24.0
   },
   {
    "part": "Tibia",
@@ -257,12 +371,12 @@
     67.2,
     131.0
    ],
-   "volume_cm3": 86.86,
+   "volume_cm3": 84.46,
    "fillets": 16,
    "chamfer_edges": 24,
    "edge_breaks": 30,
    "qty": 6,
-   "est_g_each": 64.6
+   "est_g_each": 62.8
   },
   {
    "part": "FootBoot_TPU",
@@ -276,12 +390,12 @@
     22.0,
     23.0
    ],
-   "volume_cm3": 5.94,
+   "volume_cm3": 6.0,
    "fillets": 0,
    "chamfer_edges": 0,
    "edge_breaks": 0,
    "qty": 6,
-   "est_g_each": 5.7
+   "est_g_each": 5.8
   }
  ],
  "harness": [
@@ -393,12 +507,112 @@
   {
    "cable": "Sonar",
    "d_mm": 2.0,
-   "length_mm": 18.0
+   "length_mm": 58.0
+  },
+  {
+   "cable": "ToF sensor",
+   "d_mm": 1.6,
+   "length_mm": 42.0
+  },
+  {
+   "cable": "IMU lead",
+   "d_mm": 2.2,
+   "length_mm": 154.0
+  },
+  {
+   "cable": "Feather 5V",
+   "d_mm": 1.6,
+   "length_mm": 62.0
+  },
+  {
+   "cable": "Bridge UART",
+   "d_mm": 2.2,
+   "length_mm": 65.0
+  },
+  {
+   "cable": "J1 aux",
+   "d_mm": 1.6,
+   "length_mm": 129.0
+  },
+  {
+   "cable": "Foot lead plate 0",
+   "d_mm": 1.6,
+   "length_mm": 49.0
+  },
+  {
+   "cable": "Foot lead plate 1",
+   "d_mm": 1.6,
+   "length_mm": 92.0
+  },
+  {
+   "cable": "Foot lead plate 2",
+   "d_mm": 1.6,
+   "length_mm": 170.0
+  },
+  {
+   "cable": "Foot lead plate 3",
+   "d_mm": 1.6,
+   "length_mm": 49.0
+  },
+  {
+   "cable": "Foot lead plate 4",
+   "d_mm": 1.6,
+   "length_mm": 92.0
+  },
+  {
+   "cable": "Foot lead plate 5",
+   "d_mm": 1.6,
+   "length_mm": 171.0
+  },
+  {
+   "cable": "Receiver CRSF",
+   "d_mm": 2.2,
+   "length_mm": 4.0
+  },
+  {
+   "cable": "Receiver antenna",
+   "d_mm": 1.4,
+   "length_mm": 39.0
+  },
+  {
+   "cable": "Brain power",
+   "d_mm": 2.2,
+   "length_mm": 64.0,
+   "module": "brain"
+  },
+  {
+   "cable": "Brain UART",
+   "d_mm": 1.6,
+   "length_mm": 102.0,
+   "module": "brain"
+  },
+  {
+   "cable": "Brain 5V Pi",
+   "d_mm": 2.2,
+   "length_mm": 29.0,
+   "module": "brain"
+  },
+  {
+   "cable": "OAK USB",
+   "d_mm": 4.0,
+   "length_mm": 120.0,
+   "module": "brain"
+  },
+  {
+   "cable": "LD19 lead",
+   "d_mm": 2.2,
+   "length_mm": 50.0,
+   "module": "brain"
   },
   {
    "cable": "Bus coxa servo-hub A (x6)",
    "d_mm": 3.2,
    "length_mm": 75.0
+  },
+  {
+   "cable": "Foot lead A (x6)",
+   "d_mm": 1.6,
+   "length_mm": 48.0
   },
   {
    "cable": "Bus coxa servo-hub B (x6)",
@@ -416,21 +630,38 @@
    "length_mm": 100.0
   },
   {
+   "cable": "Foot lead B (x6)",
+   "d_mm": 1.6,
+   "length_mm": 100.0
+  },
+  {
    "cable": "Bus hub-tibia B (x6)",
    "d_mm": 3.2,
    "length_mm": 100.0
+  },
+  {
+   "cable": "Foot lead C (x6)",
+   "d_mm": 1.6,
+   "length_mm": 75.0
+  },
+  {
+   "cable": "Foot lead D (x6)",
+   "d_mm": 1.6,
+   "length_mm": 123.0
   }
  ],
  "joints": 18,
- "occurrences": 154,
+ "occurrences": 216,
  "vendor_models": {},
  "use_vendor": false,
  "mass_g": {
-  "printed": 1014,
-  "bought": 1649,
-  "hardware": 110.0,
-  "wiring": 90.0,
-  "total": 2862
+  "printed": 1048,
+  "bought": 1665,
+  "hardware": 120.0,
+  "wiring": 125.0,
+  "total": 2958,
+  "brain_module": 300,
+  "brain_module_printed": 93
  },
  "frames": {
   "top_plate_top": 18.825,
