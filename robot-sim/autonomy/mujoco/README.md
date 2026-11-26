@@ -28,7 +28,7 @@ pip install stable-baselines3 torch onnx           # training and export
 
 **Mass.**
 - Total 2.96 kg plus a 0.30 kg payload (the brain module) on the top mount.
-- Per-link masses come from the Fusion build (`cad/build_report.json`).
+- Per-link masses come from the Fusion autonomy build (`cad/build_report_autonomy.json`: STS3250 femurs + brain).
 - The battery's mass sits at its real position, 43 mm behind the centre.
 - Inertias come from the collision primitives.
 

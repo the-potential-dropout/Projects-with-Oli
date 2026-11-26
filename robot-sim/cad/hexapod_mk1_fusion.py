@@ -54,6 +54,12 @@ INTER = adsk.fusion.BooleanTypes.IntersectionBooleanType
 HERE = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else None
 VENDOR_DIR = os.path.join(HERE, 'vendor') if HERE else None
 REBUILD = True
+# Build variant (docs/VERSIONS.md):
+#   'rc'       Mk1 RC, the default build: remote control only, STS3215 on every joint
+#              (budget femurs), turret example on the top mount, no brain module.
+#   'autonomy' Mk1 rev B2 autonomous: STS3250 femurs and the brain module (Pi 5, OAK-D
+#              Lite, LD19) on the top mount.  Same printed parts and harness.
+BUILD = 'rc'
 
 
 def cm(v):
@@ -1778,7 +1784,9 @@ def _driver_matrix_from_step():
     return m
 
 
-def build(out_dir=None, use_vendor=True):
+def build(out_dir=None, use_vendor=True, variant=None):
+    variant = variant or BUILD
+    auto = variant == 'autonomy'
     design = adsk.fusion.Design.cast(app.activeProduct)
     design.designType = adsk.fusion.DesignTypes.ParametricDesignType
     root = design.rootComponent
@@ -1857,7 +1865,7 @@ def build(out_dir=None, use_vendor=True):
     turret = [place('QR_AdapterPlate_Example', lambda: part_qr_adapter(B), I3(), BLUE),
               place('STS3032', sts3032_envelope, frame((0, -10, g.z_top + QR['base_h'] + 5 + STS3032['H'] - 4), (1, 0, 0), (0, 0, 1)), BLUE)]
     for o in turret:
-        o.isLightBulbOn = False
+        o.isLightBulbOn = not auto
     body_occs += turret
 
     # electronics
@@ -1942,6 +1950,8 @@ def build(out_dir=None, use_vendor=True):
         brain_occs.append(place('Harness ' + name, lambda pts=pts, r=r: pipe(pts, r), I3(), WIRE))
     harness_report += [dict(cable=n, d_mm=2 * r, length_mm=round(sum(math.dist(a, b) for a, b in zip(p[:-1], p[1:])), 0), module='brain')
                        for n, r, p in brain_cables]
+    for o in brain_occs:
+        o.isLightBulbOn = auto
     body_occs += brain_occs
 
     # legs
@@ -1954,7 +1964,7 @@ def build(out_dir=None, use_vendor=True):
         cs = place_vendor('ST3215', 'ST3215', step_to_L(), servo_env, B.coxa_servo_m(lg), BLACK)
         cx = place('CoxaMain', lambda: part_coxa_main(g), coxa_m, ORANGE)
         cc = place('CoxaCap', lambda: part_coxa_cap(g), coxa_m, ORANGE)
-        fs = place_vendor('STS3250', 'ST3215', step_to_L(), servo_env, chain(femur_servo_m(g), coxa_m), BLACK)
+        fs = place_vendor('STS3250' if auto else 'STS3215_femur', 'ST3215', step_to_L(), servo_env, chain(femur_servo_m(g), coxa_m), BLACK)
         femur_m = chain(frame((g.Lc, 0, 0), (1, 0, 0), (0, 0, 1)), coxa_m)
         fe = place('Femur', lambda: part_femur(g), femur_m, ORANGE)
         ts = place_vendor('ST3215', 'ST3215', step_to_L(), servo_env, chain(tibia_servo_m(g), femur_m), BLACK)
@@ -2013,7 +2023,7 @@ def build(out_dir=None, use_vendor=True):
         row['qty'] = q
         row['est_g_each'] = round(row['volume_cm3'] * rho * fill, 1)
         printed_g += row['est_g_each'] * q
-    bought_g = (12 * MASS_G['ST3215'] + 6 * MASS_G['STS3250'] + MASS_G['Battery_3S_4000'] + MASS_G['ServoDriverESP32']
+    bought_g = (12 * MASS_G['ST3215'] + 6 * MASS_G['STS3250' if auto else 'ST3215'] + MASS_G['Battery_3S_4000'] + MASS_G['ServoDriverESP32']
                 + MASS_G['PololuD36V28'] + MASS_G['PololuBigMOSFET'] + MASS_G['PololuACS724'] + MASS_G['BusHub']
                 + MASS_G['HC-SR04'] + MASS_G['FuseHolder_ATC'] + MASS_G['RockerSwitch_KCD1'] + MASS_G['XT60_socket']
                 + MASS_G['BalanceSocket'] + MASS_G['Feather_ESP32-S3'] + MASS_G['BNO085'] + MASS_G['VL53L1X']
@@ -2025,6 +2035,7 @@ def build(out_dir=None, use_vendor=True):
                + MASS_G['D36V50F5'] + MASS_G['microSD'] + 25.0)   # + cables and screws
     report = dict(parts=log, harness=harness_report, joints=root.asBuiltJoints.count, occurrences=root.allOccurrences.count,
                   vendor_models=vendor_used, use_vendor=use_vendor,
+                  variant=variant,
                   mass_g=dict(printed=round(printed_g), bought=round(bought_g), hardware=hardware_g, wiring=wiring_g, total=round(total_g),
                               brain_module=round(brain_g), brain_module_printed=round(brain_printed_g)),
                   frames=dict(top_plate_top=Y_PP[1], top_plate_bottom=Y_PP[0], bottom_plate_top=Y_MP[1], bottom_plate_bottom=Y_MP[0],

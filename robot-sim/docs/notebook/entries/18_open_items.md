@@ -1,7 +1,7 @@
 # 18 · Open questions and next steps
 *2026-11-25*
 
-- **Femur servos.** Is the STS3250 (about $99 each, 2.0× margin) worth it, or is the all-STS3215 budget build (1.3× rated, 3.9× stall) good enough while Oli learns?
+- **Femur servos.** *Decided in entry 20:* the RC build uses STS3215 femurs (1.39× rated, 4.2× stall, attachments ≤ 0.2 kg); the STS3250 is the autonomy upgrade. Still open: measure femur temperatures on the real robot.
 - **Simulator** (the sim session):
   - mirror the onboard controller (`control` in `hexapod.config.js`): stance-window rule, lift cap, ripple and wave gaits, balance PI-D, touchdown search, stability rule;
   - uneven terrain, a simulated IMU and foot contacts;

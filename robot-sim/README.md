@@ -102,4 +102,5 @@ docs/DESIGN.md        Mechanical design and load check     docs/KINEMATICS.md   
 docs/CONTROL.md       Onboard control system               docs/WIRING.md       every wire, cut list
 docs/ELECTRONICS.md   Shopping list                        docs/AUTONOMY.md     radio, brain module, ROS 2, MuJoCo
 docs/notebook/        Engineering design notebook (python docs/notebook/build_notebook.py)
+docs/VERSIONS.md      Every design version (RC default, autonomy upgrade, rev A/B, Mini): tags, files, cloud docs
 ```

@@ -8,7 +8,9 @@ const deg = Math.PI / 180;
 
 export const HEXAPOD = {
   name: 'Hexapod Mk1',
-  revision: 'B2', // rev B2: + Feather ESP32-S3 onboard control, IMU, foot switches, ELRS radio, brain module (docs/CONTROL.md, AUTONOMY.md)
+  revision: 'B2',
+  // 'rc' = default RC-only build (all STS3215, attachments <= 0.2 kg); 'autonomy' = STS3250 femurs + brain module (docs/VERSIONS.md)
+  build: 'rc', // rev B2: + Feather ESP32-S3 onboard control, IMU, foot switches, ELRS radio, brain module (docs/CONTROL.md, AUTONOMY.md)
 
   body: {
     length: 0.26, // front-to-back of the main plate
@@ -21,7 +23,7 @@ export const HEXAPOD = {
     plateTop: 0.018825, // top face of the top plate above the coxa-joint height
     plateBottom: -0.021575, // bottom face of the bottom plate
     coxaInset: 0.0115, // plate edge sits this far inside each coxa axis (Fusion: body_coxaInset)
-    massKg: 2.96, // CAD estimate (cad/build_report.json): servos, 3S 4000 mAh LiPo, ~1.05 kg printed, harness, pods; brain module +0.30
+    massKg: 2.93, // RC build CAD estimate (cad/build_report.json; autonomy build 2.96, cad/build_report_autonomy.json): servos, 3S 4000 mAh LiPo, ~1.05 kg printed, harness, pods; brain module +0.30
   },
 
   // Leg segment lengths, measured joint-to-joint (coxa axis to femur axis, etc.)
@@ -71,7 +73,7 @@ export const HEXAPOD = {
   // thickness (0.0202) to topMount[1], hence 0.0116 here.
   // frontMount: HC-SR04 centre 4 mm above the coxa-joint height, sensor face 135 mm forward
   topMount: [0, 0.0116, -0.01],
-  // optional top-mount module that carries the autonomy computer (cad/mesh/brain_module.glb, body frame)
+  // autonomy build only: top-mount module that carries the autonomy computer (cad/mesh/brain_module.glb, body frame)
   brainModule: { massKg: 0.3, mesh: 'brain_module' },
   frontMount: [0, 0.004, 0.135],
 

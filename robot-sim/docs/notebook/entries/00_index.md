@@ -19,4 +19,5 @@ To refresh the CAD snapshots first, run `save_snapshots(<folder>)` from the gene
 - **Rev B** (bus servos, rechargeable power, real vendor CAD, harness): entries 05–12.
 - **Rev B2** (leg study, onboard control and sensors, radio, brain module, full wiring, MuJoCo): entries 13–17.
 - **Open items:** entry 18.
+- **Rev B2 RC build** (remote control first, budget femurs; the autonomy build kept as the upgrade): entry 20. All versions: [VERSIONS.md](../../VERSIONS.md).
 - **Hexapod Mini** (a separate, remote-control-only robot for under $200, in `robot-sim/mini/`): entry 19.

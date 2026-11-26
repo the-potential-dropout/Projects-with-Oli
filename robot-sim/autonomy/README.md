@@ -14,4 +14,4 @@ python mujoco/make_mjcf.py
 python mujoco/test_stand.py
 ```
 
-`make_mjcf.py` reads `cad/build_report.json` and `cad/mesh/*.glb`, so re-run the Fusion export first.
+`make_mjcf.py` reads `cad/build_report_autonomy.json` (the autonomy build: STS3250 femurs + brain) and `cad/mesh/*.glb`, so re-run the Fusion export first.

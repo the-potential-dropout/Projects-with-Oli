@@ -2,6 +2,8 @@
 
 Everything that isn't printed is a standard catalogue part that ships by normal post.
 
+**Which build to buy for.** The **RC build** (default) is everything in §1–3 and §5–7 except the rows marked *autonomy upgrade*: all 19 leg servos are STS3215 and there is no brain module. It costs about **US$1,100** with the TX16S radio (§8). The **autonomy upgrade** adds the rows marked *autonomy upgrade*: six STS3250 femurs, §4 (the brain module) and its buck. The frame, wiring and firmware are the same, so it can be bought later. All versions are listed in [VERSIONS.md](VERSIONS.md).
+
 **Prices.** US$, checked on 2026-11-25 where a link is given. Prices marked **approx.** are typical street prices I couldn't confirm on a product page. Prices change; treat this as a budget, not a quote.
 
 **Related documents.**
@@ -16,9 +18,9 @@ Everything that isn't printed is a standard catalogue part that ships by normal 
 
 | Qty | Part | Key spec | ≈ Price | Where |
 | --- | --- | --- | --- | --- |
-| 12 (+1 spare) | **Feetech STS3215 / Waveshare ST3215, 12 V version** (C018/C047) | 30 kg·cm stall, 10 kg·cm rated, 2.7 A stall at 12 V, 45.22 × 24.72 × 35 mm, about 69 g, 12-bit magnetic encoder, TTL bus, metal horns included | $20–22 | [Waveshare ST3215 ($21.99)](https://www.waveshare.com/product/robotics/motors-servos/servos/st3215-servo.htm), [DFRobot SER0070 ($19.90)](https://www.dfrobot.com/product-2962.html), [RobotShop](https://robotshop.com/products/feetech-12v-30kgcm-magnetic-encoding-servo-sts3215), Amazon / AliExpress "STS3215 12V". **Buy the 12 V / 30 kg version, not the 7.4 V C001** |
-| 6 | **Feetech STS3250**, 12 V (femurs) | 50 kg·cm stall, 16 kg·cm rated (listing figure), same housing, steel gears, about 74.5 g | $97–99 | [Openelab STS3250-C001](https://openelab.io/products/feetech-sts3250-c001-ttl-servo), [AIFitLab](https://aifitlab.com/collections/servo-motor/products/feetech-sts3250-servo-motor) |
-| | *Budget option* | 6 more STS3215 instead of STS3250 (femur margin 1.3× rated, DESIGN.md §3) | | |
+| 18 (+1 spare) RC · 12 (+1) autonomy | **Feetech STS3215 / Waveshare ST3215, 12 V version** (C018/C047) | 30 kg·cm stall, 10 kg·cm rated, 2.7 A stall at 12 V, 45.22 × 24.72 × 35 mm, about 69 g, 12-bit magnetic encoder, TTL bus, metal horns included | $20–22 | [Waveshare ST3215 ($21.99)](https://www.waveshare.com/product/robotics/motors-servos/servos/st3215-servo.htm), [DFRobot SER0070 ($19.90)](https://www.dfrobot.com/product-2962.html), [RobotShop](https://robotshop.com/products/feetech-12v-30kgcm-magnetic-encoding-servo-sts3215), Amazon / AliExpress "STS3215 12V". **Buy the 12 V / 30 kg version, not the 7.4 V C001** |
+| 6 (*autonomy upgrade*) | **Feetech STS3250**, 12 V (femurs) | 50 kg·cm stall, 16 kg·cm rated (listing figure), same housing, steel gears, about 74.5 g | $97–99 | [Openelab STS3250-C001](https://openelab.io/products/feetech-sts3250-c001-ttl-servo), [AIFitLab](https://aifitlab.com/collections/servo-motor/products/feetech-sts3250-servo-motor) |
+| | *RC build* | STS3215 femurs instead (femur margin 1.39× rated, 4.2× stall, attachments ≤ 0.2 kg; DESIGN.md §3). The STS3250 drops into the same pocket later | | |
 | 2 / 4 | Feetech STS3032 micro bus servo (attachments only) | 6 V, 4.5 kg·cm stall, 1.5 kg·cm rated, 23.2 × 12.1 × 28.5 mm, 20 g | approx. $12 | [RobotShop](https://www.robotshop.com/products/feetech-6v-45-kg-serial-bus-servo) |
 | 3 | STS3215 (arm base, shoulder, elbow) | as above | $22 | |
 
@@ -56,7 +58,7 @@ Everything that isn't printed is a standard catalogue part that ships by normal 
 | 1 | **Pololu Big MOSFET Slide Switch, HP** (#2815) | About 16 A continuous, reverse-polarity protected | $6.75 | [Pololu #2815](https://www.pololu.com/product/2815) |
 | 1 | **Pololu ACS724LLCTR-30AB** (#4047) | ±30 A, 66 mV/A | approx. $11 | [Pololu #4047](https://www.pololu.com/product/4047) |
 | 1 | **Pololu D36V28F5** 5 V 3.2 A buck | Logic 5 V | $21.95 | [Pololu #3782](https://www.pololu.com/product/3782) |
-| 1 (brain) | **Pololu D36V50F5** 5 V 5.5 A buck | Pi 5 + camera + LiDAR | approx. $25 | [Pololu #4091](https://www.pololu.com/product/4091) |
+| 1 (brain, *autonomy upgrade*) | **Pololu D36V50F5** 5 V 5.5 A buck | Pi 5 + camera + LiDAR | approx. $25 | [Pololu #4091](https://www.pololu.com/product/4091) |
 | 1 per arm/turret | Pololu D36V28F6 6 V buck (on the attachment adapter) | For STS3032 micro servos | approx. $22 | [Pololu #3783](https://www.pololu.com/product/3783) |
 | 1 | Inline ATC fuse holder (14 AWG) + 20 A fuse | Main fuse | approx. $6 | Amazon |
 | 6 + 1 + 1 | **Littelfuse RXEF300** (3 A hold), **RXEF500** (5 A), **RXEF110** (1.1 A) PTC fuses | Per-leg, J1, bridge | approx. $0.40 each | DigiKey / Mouser |
@@ -83,7 +85,9 @@ Everything that isn't printed is a standard catalogue part that ships by normal 
 - **26–36 min** with it;
 - more than 2 h standing still or idle.
 
-## 4. Brain module (autonomy, swappable, AUTONOMY.md)
+## 4. Brain module (*autonomy upgrade*, swappable, AUTONOMY.md)
+
+Not needed for the RC build. The J1 plug and the top mount stay in place for it.
 
 | Qty | Part | Job | ≈ Price | Where |
 | --- | --- | --- | --- | --- |
@@ -134,14 +138,17 @@ Everything that isn't printed is a standard catalogue part that ships by normal 
 
 ## 8. Rough total
 
-| Group | Chosen (STS3250 femurs) | Budget (all STS3215) |
+| Group | **RC build (default)** | Autonomy build |
 | --- | --- | --- |
-| Leg servos | 13 × 22 + 6 × 99 ≈ $880 | 19 × 22 ≈ $420 |
+| Leg servos | 19 × 22 ≈ $420 | 13 × 22 + 6 × 99 ≈ $880 |
 | Controller, bridge, sensors, receiver | ≈ $115 | ≈ $115 |
 | Power (switch, sensor, bucks, fuses, PTCs, caps, XT60s) | ≈ $70 | ≈ $70 |
 | Battery + charger + bag | ≈ $110 | ≈ $110 |
 | Harness (wire, crimps, sleeves) | ≈ $70 | ≈ $70 |
 | Hardware + filament | ≈ $95 | ≈ $95 |
-| **Robot total** | **≈ $1,340** | **≈ $880** |
-| Radio (TX16S MK3) | + $230 | + $70 (Pocket) |
-| Brain module (Pi 5, cooler, SD, OAK-D Lite, LD19, buck, cables) | + ≈ $350 | + ≈ $350 |
+| **Robot total** | **≈ $880** | **≈ $1,340** |
+| Radio (TX16S MK3) | + $230 | + $230 |
+| Brain module (Pi 5, cooler, SD, OAK-D Lite, LD19, buck, cables) | none | + ≈ $350 |
+| **All in** | **≈ $1,110** | **≈ $1,920** |
+
+With a RadioMaster Pocket ($70) instead of the TX16S, the RC build is about **$950**. Upgrading an RC build to autonomy later costs about $810 (six STS3250s ≈ $460 + the brain ≈ $350); the six STS3215 femurs become spares.

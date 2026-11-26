@@ -651,15 +651,16 @@
   }
  ],
  "joints": 18,
- "occurrences": 216,
+ "occurrences": 217,
  "vendor_models": {},
  "use_vendor": false,
+ "variant": "rc",
  "mass_g": {
   "printed": 1048,
-  "bought": 1665,
+  "bought": 1632,
   "hardware": 120.0,
   "wiring": 125.0,
-  "total": 2958,
+  "total": 2925,
   "brain_module": 300,
   "brain_module_printed": 93
  },

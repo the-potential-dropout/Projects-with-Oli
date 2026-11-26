@@ -1,10 +1,19 @@
 # Hexapod Mk1 (rev B2): mechanical design
 
-![Hexapod Mk1 rev B in Fusion, with the manufacturers' servo and board models and the full harness](img/hexapod_mk1_iso.png)
+![Hexapod Mk1 RC build in Fusion, with the manufacturers' servo and board models and the full harness](img/hexapod_mk1_iso.png)
+
+**Two builds share this design** (every version is listed in [VERSIONS.md](VERSIONS.md)):
+
+| Build | Femur servos | Top mount | Cost (robot + radio) | Files |
+| --- | --- | --- | --- | --- |
+| **RC (default, the one to build first)** | STS3215 (budget) | Turret or other attachment, **≤ 0.2 kg** | about US$1,100 | `cad/Hexapod_Mk1.f3d`, `cad/build_report.json`, cloud "Hexapod Mk1 RC" |
+| Autonomy (upgrade) | STS3250 | Brain module (Pi 5, OAK-D Lite, LD19), ≤ 0.4 kg | about US$1,920 | `cad/Hexapod_Mk1_autonomy.f3d`, `cad/build_report_autonomy.json`, cloud "Hexapod Mk1" v3, tag `mk1-revB2-autonomy` |
+
+The frame, printed parts, wiring, controller, radio and firmware are the same. The upgrade is six femur servos plus the brain module, with no reprinting.
 
 Rev B rebuilds Mk1 around **Feetech serial-bus servos** and a **3S LiPo power system**:
 
-- STS3215 on the coxa and tibia joints, STS3250 on the femurs.
+- STS3215 on all 18 joints in the RC build; the autonomy build swaps the six femurs for STS3250s (same housing).
 - The real manufacturer CAD is used for the servos and boards.
 - Every wire, cable and connector is modelled.
 
@@ -76,12 +85,12 @@ The joint-to-joint lengths are unchanged: **coxa 45, femur 75, tibia 120 mm**. A
 | Joint | Servo | Why |
 | --- | --- | --- |
 | Coxa × 6 | **Feetech STS3215 / Waveshare ST3215, 12 V, 30 kg·cm stall, 10 kg·cm rated** | Widely sold (the SO-100 arm uses them), official STEP, 12-bit magnetic encoder, position/load/voltage/temperature feedback for the digital twin |
-| Femur × 6 | **Feetech STS3250, 12 V, 50 kg·cm stall, 16 kg·cm rated** | Same housing, horns, bus and protocol as the STS3215. Needed for the 2× rated-torque margin at the femur (§3) |
+| Femur × 6 | **RC: STS3215.** Autonomy: **Feetech STS3250, 12 V, 50 kg·cm stall, 16 kg·cm rated** | The STS3250 has the same housing, horns, bus and protocol as the STS3215, so it drops in. It is needed for the 2× rated-torque margin with the 0.4 kg brain; the RC build trades margin for cost and caps attachments at 0.2 kg (§3) |
 | Tibia × 6 | STS3215 | |
 | Arm: base, shoulder, elbow | STS3215 | Shoulder needs 4.1 kg·cm (120 + 120 mm links, 50 g payload) → 2.4× rated |
 | Arm: wrist, gripper; turret pan and pitch | **Feetech STS3032**, 6 V micro bus servo (4.5 kg·cm stall, 1.5 kg·cm rated) | Wrist 0.4 kg·cm → 4×; turret pitch 0.25 kg·cm → 6×. Runs from a 6 V buck on the attachment |
 
-Rated and stall torques are the manufacturer and distributor figures (Feetech via RobotShop, DFRobot and Openelab; links in ELECTRONICS.md). The STS3250's 16 kg·cm rating comes from one distributor listing, so check it against the datasheet that ships with your servos. Budget option: all-STS3215. It works, but the femurs only have 1.3× rated margin (4× on stall), so they will run warm when carrying a heavy attachment.
+Rated and stall torques are the manufacturer and distributor figures (Feetech via RobotShop, DFRobot and Openelab; links in ELECTRONICS.md). The STS3250's 16 kg·cm rating comes from one distributor listing, so check it against the datasheet that ships with your servos. The RC build is all-STS3215. It works, but the femurs only have about 1.4× rated margin (4.2× on stall), so attachments are capped at 0.2 kg and the femurs will run warm on long sessions.
 
 ## 3. Load check
 
@@ -102,10 +111,20 @@ The uncapped gait (sprint + turn + strafe) can ask for feet out to 194 mm. That 
 | Coxa | STS3215 | 3.87 kg·cm (0.38 N·m) | 10 kg·cm | **2.59×** | 7.8× |
 | Femur | STS3250 | 7.84 kg·cm (0.77 N·m) | 16 kg·cm | **2.04×** | 6.4× |
 | Tibia | STS3215 | 4.02 kg·cm (0.39 N·m) | 10 kg·cm | **2.49×** | 7.5× |
-| Femur (budget: STS3215) | STS3215 | 7.77 kg·cm | 10 kg·cm | 1.29× | 3.9× |
+| Femur (budget: STS3215, 0.4 kg attachment) | STS3215 | 7.77 kg·cm | 10 kg·cm | 1.29× | 3.9× |
 | Femur, rev A stance (feet to 176 mm), STS3215 | | 14.2 kg·cm | 10 kg·cm | 0.70× | 2.1× |
 
-**Mass** (rev B2, from `cad/build_report.json`):
+**RC build** (2.93 kg, attachment capped at **0.2 kg**, same 80–115 mm stance window):
+
+| Joint | Servo | Required | Rated (12 V) | **Margin vs rated** | Margin vs stall |
+| --- | --- | --- | --- | --- | --- |
+| Coxa | STS3215 | 3.56 kg·cm | 10 kg·cm | **2.81×** | 8.4× |
+| Femur | STS3215 | 7.22 kg·cm (0.71 N·m) | 10 kg·cm | **1.39×** | 4.2× |
+| Tibia | STS3215 | 3.70 kg·cm | 10 kg·cm | **2.70×** | 8.1× |
+
+The femur doesn't reach the 2× target; nothing cheaper in this housing does. It is still 4× under stall, so the robot stands and walks, but don't carry more than 0.2 kg on the top mount, watch the `B,` servo temperatures, and rest it when they pass 60 °C. Fitting STS3250 femurs later restores 2.2× (and 2.0× with the 0.4 kg brain).
+
+**Mass** (autonomy build, from `cad/build_report_autonomy.json`; the RC build in `cad/build_report.json` is 33 g lighter, 2.93 kg, from the six STS3215 femurs):
 - **Printed:** 1.05 kg, including the control pod, IMU pod and foot-switch features.
 - **Bought parts:** 1.67 kg. That is 12 × 69 g STS3215, 6 × 74.5 g STS3250, the 305 g battery, the Feather, IMU, ToF, receiver, six foot switches and the boards.
 - **Screws, inserts, grommets:** 0.12 kg.
@@ -253,4 +272,4 @@ The low-voltage cutoff is in firmware: below 10.2 V (3.4 V/cell) for 3 s, all se
   - Servo-load contact as a backup for the foot switches.
   - STS3250 on the tibias too, for heavier payloads.
   - Self-righting behaviour on the brain.
-- **Cost.** About US$1,340 for the robot with STS3250 femurs; about US$880 with all STS3215. Add US$230 for the radio and about US$350 for the brain module (itemised in ELECTRONICS.md). The six STS3250s are still the largest item.
+- **Cost.** RC build about US$1,100 including the radio (all STS3215). The autonomy upgrade adds about US$460 for six STS3250 femurs and about US$350 for the brain module, about US$1,920 in all (itemised in ELECTRONICS.md).

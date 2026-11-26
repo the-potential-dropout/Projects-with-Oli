@@ -21,13 +21,13 @@ The simulator's numbers come from [src/robots/hexapod.config.js](../src/robots/h
 | Body plates | 137 mm wide, 5 mm thick, gap 30.4 mm (= the servo case), each split in two |
 | Coxa-joint height when walking | 90 mm (`standHeight`), 105 mm in terrain mode. Lowest part 38.5 mm below it (coxa bracket); the IMU pod is 12 mm under the belly |
 | Stance (load limit) | every stance foot 80–115 mm from its coxa axis (`footReachMin/Max`); the firmware enforces it |
-| Mass | about 2.96 kg without an attachment; the brain module adds 0.30 kg |
+| Mass | RC build about 2.93 kg without an attachment (attachments ≤ 0.2 kg). Autonomy build 2.96 kg; the brain module adds 0.30 kg |
 
 ## Servo IDs
 
 Bus servos are addressed by ID, not by channel. **Set each servo's ID before assembly** with Waveshare's or Feetech's tool: the bridge board's stock firmware web page, or FD.exe from Feetech. Do one servo on the bus at a time, and write the ID on the case.
 
-| Leg | Coxa | Femur (STS3250) | Tibia |
+| Leg | Coxa | Femur (STS3215 RC / STS3250 autonomy) | Tibia |
 | --- | --- | --- | --- |
 | 0 Front right | 1 | 2 | 3 |
 | 1 Middle right | 4 | 5 | 6 |
@@ -150,7 +150,7 @@ On a stand:
 
 ## Safety
 
-- Hold the robot or use a stand the first time you connect. STS3250s are strong: 50 kg·cm will pinch fingers.
+- Hold the robot or use a stand the first time you connect. Bus servos are strong: 30 kg·cm (STS3215) or 50 kg·cm (STS3250) will pinch fingers.
 - The radio's **kill switch (SF)** cuts the servos instantly. Test it every session.
 - Switch off before working on the robot. Unplug the battery when you're done.
 - Only use the 20 A fuse. Never bridge it or the PTCs.
