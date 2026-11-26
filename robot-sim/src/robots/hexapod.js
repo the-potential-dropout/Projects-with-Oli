@@ -5,6 +5,7 @@ import { HexapodGait } from '../core.js';
 import { HEXAPOD, gaitMounts, legToServo } from './hexapod.config.js';
 import { createAttachment } from '../attachments.js';
 import { hexapodMesh, hasHexapodMeshes } from './hexapod.meshes.js';
+import { HexapodController } from './hexapod.control.js';
 
 const tmpV = new THREE.Vector3();
 
@@ -50,12 +51,13 @@ export class Hexapod {
    * @param {number} o.color team colour
    * @param {{top: string, front: string}} o.loadout
    */
-  constructor({ scene, world, name, color, loadout, isBot = false }) {
+  constructor({ scene, world, terrain = null, name, color, loadout, isBot = false }) {
     this.type = 'hexapod';
     this.cfg = HEXAPOD;
     this.name = name;
     this.isBot = isBot;
     this.world = world;
+    this.terrain = terrain;
     this.scene = scene;
     this.color = color;
     this.maxHp = 100;
@@ -71,8 +73,13 @@ export class Hexapod {
 
     const c = this.cfg;
     this.gait = new HexapodGait(new Float32Array(gaitMounts(c)), c.leg.coxa, c.leg.femur, c.leg.tibia, c.leg.footReach, c.standHeight);
-    this.gait.set_step(c.standHeight * 0.45, c.stepHz.walk);
-    if (c.jointLimits) this.gait.set_tibia_limit((c.jointLimits.tibia[0] * Math.PI) / 180);
+    const J = c.jointLimits;
+    const r = (d) => (d * Math.PI) / 180;
+    this.gait.set_joint_limits(r(J.coxa[0]), r(J.coxa[1]), r(J.femur[0]), r(J.femur[1]), r(J.tibia[0]), r(J.tibia[1]), r(c.tibiaFoldWhenFemurDown ?? J.tibia[0]));
+    this.gait.set_reach_window(c.leg.footReachMin, c.leg.footReachMax, c.stepHz.sprint);
+    this.gait.set_step(c.control.stepHeight, c.stepHz.walk);
+    // the onboard controller (balance, terrain, gait choice, battery), as in the firmware
+    this.ctl = new HexapodController(c);
     this.bodyId = world.add_body(c.hitRadius);
 
     this.root = new THREE.Group();
@@ -247,6 +254,8 @@ export class Hexapod {
     this.pos.set(x, 0, z);
     this.yaw = yaw;
     this.vel = { x: 0, z: 0, w: 0 };
+    this.ctl.reset();
+    this.ctl.att.h = this.ground(x, z) + this.cfg.standHeight;
     this.hp = this.maxHp;
     this.alive = true;
     this.deathT = 0;
@@ -283,15 +292,39 @@ export class Hexapod {
       this.deathT += dt;
       cmd = { moveX: 0, moveZ: 0, turn: 0, aim: 0 };
     }
-    const sprint = !!cmd.sprint;
+    const ctl = this.ctl;
+    if (this.alive) ctl.applySwitches(cmd);
+    const sprint = !!cmd.sprint && !ctl.terrainMode;
     const speed = sprint ? c.speed.sprint : c.speed.walk;
-    const tx = (cmd.moveX || 0) * speed;
-    const tz = (cmd.moveZ || 0) * speed;
-    const tw = (cmd.turn || 0) * c.speed.turn;
-    const k = 1 - Math.exp(-dt * 8);
-    this.vel.x += (tx - this.vel.x) * k;
-    this.vel.z += (tz - this.vel.z) * k;
-    this.vel.w += (tw - this.vel.w) * k;
+    let tx = (cmd.moveX || 0) * speed;
+    let tz = (cmd.moveZ || 0) * speed;
+    let tw = (cmd.turn || 0) * c.speed.turn;
+    if (ctl.mode === 'pose' || ctl.fault) tx = tz = tw = 0;
+
+    // Legs: the onboard controller runs the Rust gait (pose, balance, terrain)
+    if (this.alive) {
+      ctl.step(dt, cmd, this.gait, this.terrain, this.body, { tx, tz, tw });
+      this.jointAngles.set(this.gait.angles());
+      // the body moves exactly as its stance feet push it (after the command
+      // filter and the stance-window rule), so planted feet never slide
+      const v = this.gait.velocity();
+      this.vel.x = v[0];
+      this.vel.z = v[1];
+      this.vel.w = v[2];
+    } else {
+      // Collapse: legs relax upward, body sinks
+      const k = 1 - Math.exp(-dt * 8);
+      for (let i = 0; i < 6; i++) {
+        this.jointAngles[i * 3 + 1] += (0.6 - this.jointAngles[i * 3 + 1]) * k * 0.5;
+        this.jointAngles[i * 3 + 2] += (-0.4 - this.jointAngles[i * 3 + 2]) * k * 0.5;
+      }
+    }
+    if (!this.alive) {
+      const k = 1 - Math.exp(-dt * 8);
+      this.vel.x -= this.vel.x * k;
+      this.vel.z -= this.vel.z * k;
+      this.vel.w -= this.vel.w * k;
+    }
 
     this.yaw += this.vel.w * dt;
     const s = Math.sin(this.yaw);
@@ -302,18 +335,6 @@ export class Hexapod {
     this.pos.x = fixed[0];
     this.pos.z = fixed[1];
 
-    // Legs (Rust gait + IK)
-    this.gait.set_step(c.standHeight * (sprint ? 0.5 : 0.45), sprint ? c.stepHz.sprint : c.stepHz.walk);
-    if (this.alive) {
-      this.gait.update(dt, tx, tz, tw);
-      this.jointAngles.set(this.gait.angles());
-    } else {
-      // Collapse: legs relax upward, body sinks
-      for (let i = 0; i < 6; i++) {
-        this.jointAngles[i * 3 + 1] += (0.6 - this.jointAngles[i * 3 + 1]) * k * 0.5;
-        this.jointAngles[i * 3 + 2] += (-0.4 - this.jointAngles[i * 3 + 2]) * k * 0.5;
-      }
-    }
     for (let i = 0; i < 6; i++) {
       const L = this.legs[i];
       L.coxaJ.rotation.y = -this.jointAngles[i * 3];
@@ -333,21 +354,26 @@ export class Hexapod {
     this.#syncTransform();
   }
 
+  /** Ground height under a point (0 on flat ground). */
+  ground(x, z) {
+    return this.terrain ? this.terrain.height(x, z) : 0;
+  }
+
   #syncTransform() {
     const c = this.cfg;
-    this.root.position.copy(this.pos);
+    this.root.position.set(this.pos.x, 0, this.pos.z);
     this.root.rotation.y = this.yaw;
-    // The body stays level at stand height while alive: the gait's IK assumes
-    // that, so any lean or bob here would push the feet through the floor.
-    let y = c.standHeight;
+    // The body sits where its supporting feet put it (hexapod.control.js); the
+    // root stays at ground level 0 and the body carries the height and tilt.
+    const a = this.ctl.att;
+    let y = a.h;
+    this.body.rotation.order = 'YXZ';
     if (!this.alive) {
       const t = Math.min(1, this.deathT * 2);
-      y = THREE.MathUtils.lerp(c.standHeight, c.body.plateGap / 2 + 0.012, t);
-      this.body.rotation.z = 0.12 * t;
-      this.body.rotation.x = -0.06 * t;
+      y = THREE.MathUtils.lerp(a.h, this.ground(this.pos.x, this.pos.z) + c.body.plateGap / 2 + 0.012, t);
+      this.body.rotation.set(-a.pitch - 0.06 * t, a.yaw ?? 0, a.roll + 0.12 * t);
     } else {
-      this.body.rotation.x = 0;
-      this.body.rotation.z = 0;
+      this.body.rotation.set(-a.pitch, a.yaw ?? 0, a.roll);
     }
     this.body.position.y = y;
     this.world.set_body(this.bodyId, this.pos.x, y + 0.02, this.pos.z, this.alive);
@@ -371,5 +397,6 @@ export class Hexapod {
   dispose() {
     this.root.removeFromParent();
     this.gait.free();
+    this.ctl.dispose();
   }
 }

@@ -713,3 +713,133 @@ body.touch #status {
     bottom: calc(104px + var(--safe-b));
   }
 }
+
+/* Robot telemetry (as on the radio's HexaMk1 widget) */
+#telemetry {
+  position: absolute;
+  top: calc(182px + var(--safe-t));
+  right: calc(12px + var(--safe-r));
+  width: 158px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--text);
+  pointer-events: none;
+}
+#telemetry:empty {
+  display: none;
+}
+#telemetry .t-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+#telemetry .t-row + .t-row {
+  margin-top: 4px;
+}
+#telemetry .t-mode {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: #2b3038;
+}
+#telemetry .t-mode.auto {
+  background: #1f6f45;
+}
+#telemetry .t-mode.pose {
+  background: #6b4a12;
+}
+#telemetry .t-mode.bad,
+#telemetry .bad {
+  color: var(--bad);
+}
+#telemetry .t-mode.bad {
+  color: #fff;
+  background: #a52a2a;
+}
+#telemetry .lit {
+  color: var(--ok);
+}
+#telemetry .dim {
+  color: #59616c;
+}
+#telemetry .t-hz {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #3d6fa8;
+  flex: none;
+}
+#telemetry .t-hz i {
+  position: absolute;
+  left: -50%;
+  top: 50%;
+  width: 200%;
+  height: 100%;
+  background: #7a5a3a;
+  border-top: 1px solid #fff;
+}
+#telemetry .t-feet {
+  display: grid;
+  grid-template-columns: repeat(3, 8px);
+  gap: 3px;
+}
+#telemetry .t-feet i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid #77808c;
+}
+#telemetry .t-feet i.on {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+/* Radio switch buttons on touch screens */
+.tswitches {
+  position: absolute;
+  left: calc(12px + var(--safe-l));
+  bottom: calc(178px + var(--safe-b));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: auto;
+}
+.tswitches button {
+  min-width: 56px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--text);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tswitches button:active {
+  filter: brightness(1.6);
+}
+
+@media (max-width: 640px) {
+  #telemetry {
+    top: calc(152px + var(--safe-t));
+    width: 140px;
+    font-size: 10px;
+  }
+}
+@media (max-height: 480px) {
+  #telemetry {
+    top: calc(54px + var(--safe-t));
+    right: calc(112px + var(--safe-r));
+  }
+  .tswitches {
+    bottom: auto;
+    top: calc(52px + var(--safe-t));
+  }
+}

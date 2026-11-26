@@ -44,6 +44,25 @@
 
         <section class="grid2">
           <div>
+            <h2>Ground</h2>
+            <div class="seg" id="ground-seg">
+              <button data-ground="flat" class="on">Flat</button>
+              <button data-ground="rough">Rough</button>
+            </div>
+            <p class="hint">Rough: bumps, rocks, a stepped pad and a 12° hill. Try terrain mode (<kbd>V</kbd>) and the ripple gait (<kbd>2</kbd>).</p>
+          </div>
+          <div>
+            <h2>Controls</h2>
+            <div class="seg" id="layout-seg">
+              <button data-layout="game" class="on">Game</button>
+              <button data-layout="radio">RC radio</button>
+            </div>
+            <p class="hint">RC radio: sticks as on the robot's RadioMaster (Mode 2). Right stick walks, left stick turns and sets the body height.</p>
+          </div>
+        </section>
+
+        <section class="grid2">
+          <div>
             <h2>Your attachments</h2>
             <label>Top mount <select id="you-top"></select></label>
             <p class="hint" id="you-top-desc"></p>
@@ -76,6 +95,12 @@
               <p>Click the view to steer with the mouse (left = fire, right = alt). <kbd>C</kbd> camera · <kbd>T</kbd> twin panel · <kbd>Esc</kbd> pause</p>
             </div>
             <div>
+              <h3>Robot switches (like the radio)</h3>
+              <p><kbd>M</kbd> mode: manual / pose / auto · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> tripod / ripple / wave gait · <kbd>V</kbd> terrain mode · <kbd>B</kbd> balance · <kbd>[</kbd><kbd>]</kbd> body height</p>
+              <p>Pose mode: the walk keys tilt and twist the body instead. Auto: the robot drives itself; touch a stick to take over.</p>
+              <p>Gamepad: Y mode · D-pad ←→ gait, ↕ height · Back terrain · R3 balance</p>
+            </div>
+            <div>
               <h3>Gamepad</h3>
               <p>Left stick walk + strafe · Right stick turn + aim</p>
               <p>RT / A fire · LT / RB alt · L3 / LB sprint · Start pause</p>
@@ -101,6 +126,7 @@
         <div class="hp right" id="hp-bot"><span class="name">Bot</span><div class="bar"><i></i></div></div>
       </div>
       <canvas id="radar" width="140" height="140"></canvas>
+      <div id="telemetry"></div>
       <div class="tools">
         <button id="btn-pause" title="Pause (Esc)">❚❚</button>
         <button id="btn-cam" title="Camera (C)">🎥</button>
@@ -114,6 +140,11 @@
         <div class="stick" id="stick-look"><div class="knob"></div></div>
         <button id="btn-fire" class="tbtn fire">FIRE</button>
         <button id="btn-alt" class="tbtn alt">ALT</button>
+        <div class="tswitches">
+          <button data-switch="mode">MODE</button>
+          <button data-switch="gait">GAIT</button>
+          <button data-switch="terrain">TERR</button>
+        </div>
       </div>
     </div>
 

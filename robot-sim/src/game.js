@@ -9,6 +9,7 @@ import { Effects, Audio } from './fx.js';
 import { Input } from './input.js';
 import { BotBrain } from './bot.js';
 import { TwinPanel } from './twin.js';
+import { GAITS } from './robots/hexapod.control.js';
 
 const PLAYER_COLOR = 0xff7a1a;
 const BOT_COLOR = 0x3aa0ff;
@@ -101,18 +102,21 @@ export class Game {
     for (const r of this.robots) r.dispose();
     for (const d of this.dummies) d.dispose();
     this.arena?.removeFromParent();
+    this.terrain?.free();
     this.world?.free();
     this.effects.clear();
     this.robots = [];
     this.dummies = [];
     this.bots = [];
     this.world = new World(ARENA_HALF);
-    this.arena = buildArena(this.scene, this.world, { shadows: this.hq });
+    const ground = this.settings?.ground ?? 'flat';
+    this.arena = buildArena(this.scene, this.world, { shadows: this.hq, ground, seed: (this.settings?.seed ?? 7) | 0 });
+    this.terrain = this.arena.userData.terrain;
   }
 
   #makeRobot(robotId, opts) {
     const def = robotById(robotId);
-    const r = def.create({ scene: this.scene, world: this.world, ...opts });
+    const r = def.create({ scene: this.scene, world: this.world, terrain: this.terrain, ...opts });
     r.team = opts.team;
     this.robots.push(r);
     if (this.hq) r.root.traverse((o) => o.isMesh && (o.castShadow = true));
@@ -142,13 +146,16 @@ export class Game {
     this.#resetWorld();
     this.player = this.#makeRobot(settings.robot, { name: 'You', color: PLAYER_COLOR, loadout: settings.you, team: 'player' });
     this.player.spawn(0, -SPAWN_Z, 0);
+    // AUTO mode: your robot runs the same behaviour tree as the bot
+    this.autoBrain = new BotBrain(this.player, 'hard');
+    this.input.layout = settings.layout ?? 'game';
     if (settings.mode === 'battle') {
       const bot = this.#makeRobot(settings.robot, { name: 'Bot', color: BOT_COLOR, loadout: settings.bot, team: 'bot', isBot: true });
       bot.spawn(0, SPAWN_Z, Math.PI);
       this.bots.push(new BotBrain(bot, settings.botLevel));
     } else {
       for (const [x, z] of [[-0.8, 0.6], [0.8, 0.6], [0, 2.6], [-2.5, -0.8], [2.5, -0.8]]) {
-        const d = new TargetDummy(this.scene, this.world, x, z);
+        const d = new TargetDummy(this.scene, this.world, x, z, this.terrain.height(x, z));
         d.face_toward(0, -SPAWN_Z);
         this.dummies.push(d);
       }
@@ -184,6 +191,35 @@ export class Game {
     }
   }
 
+  /** In AUTO the behaviour tree drives; any stick input takes control back (as on the robot). */
+  #playerCommand(dt, cmd) {
+    const p = this.player;
+    if (p.ctl?.mode !== 'auto' || !p.alive) return cmd;
+    if (cmd.sticks) {
+      p.ctl.mode = 'manual';
+      this.banner('', 'Manual: you took control back', 1.2, true);
+      return cmd;
+    }
+    const auto = this.autoBrain.think(dt, this);
+    // your switch flicks still go through (gait, terrain, balance, mode)
+    for (const k of ['gait', 'gaitStep', 'toggleTerrain', 'toggleBalance', 'cycleMode']) if (cmd[k] != null && cmd[k] !== false) auto[k] = cmd[k];
+    return auto;
+  }
+
+  /** Short banner when a radio switch changes something. */
+  #switchBanner() {
+    const c = this.player.ctl;
+    if (!c) return;
+    const now = { mode: c.mode, gait: c.gaitReq, terrain: c.terrainMode, balance: c.balanceOn };
+    const was = this.lastSwitches;
+    this.lastSwitches = now;
+    if (!was) return;
+    if (now.mode !== was.mode) this.banner('', now.mode === 'auto' ? 'AUTO: the behaviour tree drives. Move a stick to take over.' : now.mode === 'pose' ? 'POSE: sticks tilt and twist the body' : 'MANUAL: sticks walk', 1.8, true);
+    else if (now.gait !== was.gait) this.banner('', `Gait: ${GAITS[now.gait]}`, 1, true);
+    else if (now.terrain !== was.terrain) this.banner('', now.terrain ? 'Terrain mode ON: body 105 mm, 45 mm steps, feet feel for the ground' : 'Terrain mode off', 1.6, true);
+    else if (now.balance !== was.balance) this.banner('', now.balance ? 'Balance ON (IMU levelling)' : 'Balance off', 1.2, true);
+  }
+
   /* ---------------- HUD ---------------- */
 
   #bindHud() {
@@ -193,7 +229,10 @@ export class Game {
       status: document.getElementById('status'),
       banner: document.getElementById('banner'),
       radar: document.getElementById('radar'),
+      telemetry: document.getElementById('telemetry'),
+      botName: document.querySelector('#hp-bot .name'),
     };
+    this.telT = 0;
     this.radarCtx = this.hud.radar.getContext('2d');
     this.bannerT = 0;
     document.getElementById('btn-cam').addEventListener('click', () => this.cycleCamera());
@@ -255,6 +294,37 @@ export class Game {
       if (this.bannerT <= 0) this.hud.banner.classList.remove('show');
     }
     this.#drawRadar();
+    this.telT -= dt;
+    if (this.telT <= 0) {
+      this.telT = 0.1;
+      this.#drawTelemetry();
+      const brain = this.bots[0];
+      if (brain) this.hud.botName.textContent = `Bot · ${brain.node}`;
+    }
+  }
+
+  /** The robot's telemetry, laid out like the HexaMk1 radio widget (radio/WIDGETS). */
+  #drawTelemetry() {
+    const p = this.player;
+    const c = p.ctl;
+    const el = this.hud.telemetry;
+    if (!c || !el) return;
+    const deg = (v) => `${((v * 180) / Math.PI).toFixed(1)}°`;
+    const b = c.battery;
+    const pct = Math.round(b.soc * 100);
+    let feet = '';
+    for (const i of [3, 4, 5, 0, 1, 2]) feet += `<i class="${c.contacts & (1 << i) ? 'on' : ''}"></i>`;
+    const mode = c.fault || { manual: 'MAN', pose: 'POSE', auto: 'AUTO' }[c.mode];
+    const gait = GAITS[p.gait.current_gait()] + (c.autoRipple && c.gaitReq === 0 ? '*' : '');
+    const m = Math.round(c.margin * 1000);
+    // artificial horizon: the line tilts with roll and moves with pitch
+    const roll = (-c.imu.roll * 180) / Math.PI;
+    const pitch = Math.max(-12, Math.min(12, ((c.imu.pitch * 180) / Math.PI) * 0.8));
+    el.innerHTML = `
+      <div class="t-row"><b class="t-mode ${c.fault ? 'bad' : c.mode}">${mode}</b><span>${gait}</span><span class="${c.terrainMode ? 'lit' : 'dim'}">TERR</span><span class="${c.balanceOn ? 'lit' : 'dim'}">BAL</span></div>
+      <div class="t-row"><span class="t-hz"><i style="transform:translateY(${pitch}px) rotate(${roll}deg)"></i></span><span>R ${deg(c.imu.roll)}<br>P ${deg(c.imu.pitch)}</span><span class="t-feet" title="foot switches (left side on top)">${feet}</span></div>
+      <div class="t-row"><span class="${m < 25 ? 'bad' : ''}">margin ${m < -900 ? '—' : m + ' mm'}</span><span>h ${Math.round(c.height * 1000)} mm</span></div>
+      <div class="t-row"><span class="${b.v < 10.5 ? 'bad' : ''}">${b.v.toFixed(1)} V</span><span>${pct}%</span><span>${b.a.toFixed(1)} A</span></div>`;
   }
 
   #drawRadar() {
@@ -406,9 +476,11 @@ export class Game {
     if (this.state === 'menu') {
       this.player?.update(dt, { moveX: 0, moveZ: 0, turn: 0, aim: 0 }, this);
     } else if (playing) {
-      const cmd = this.input.read(dt);
+      let cmd = this.input.read(dt);
       if (cmd.pause) this.pause(true);
+      cmd = this.#playerCommand(dt, cmd);
       this.player.update(dt, this.over ? {} : cmd, this);
+      this.#switchBanner();
       for (const b of this.bots) b.robot.update(dt, this.over ? {} : b.think(dt, this), this);
       for (const d of this.dummies) d.update(dt);
 
@@ -432,7 +504,7 @@ export class Game {
         }
       }
       this.#updateHud(dt);
-      this.twin.update(dt, this.player);
+      this.twin.update(dt, this.player, cmd);
     }
     this.effects.update(playing ? dt : 0);
     this.#updateCamera(dt);

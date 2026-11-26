@@ -43,6 +43,7 @@ pub struct World {
     bodies: Vec<Body>,
     projectiles: Vec<Projectile>,
     events: Vec<f32>,
+    ground: crate::terrain::Grid,
 }
 
 #[wasm_bindgen]
@@ -50,7 +51,12 @@ impl World {
     /// Square arena from -half_size to +half_size on X and Z.
     #[wasm_bindgen(constructor)]
     pub fn new(half_size: f32) -> World {
-        World { half_size, obstacles: Vec::new(), bodies: Vec::new(), projectiles: Vec::new(), events: Vec::new() }
+        World { half_size, obstacles: Vec::new(), bodies: Vec::new(), projectiles: Vec::new(), events: Vec::new(), ground: Default::default() }
+    }
+
+    /// Use this ground for projectiles hitting the floor (flat = 0 otherwise).
+    pub fn set_terrain(&mut self, t: &crate::terrain::Terrain) {
+        self.ground = t.grid().clone();
     }
 
     pub fn clear_obstacles(&mut self) {
@@ -125,8 +131,9 @@ impl World {
                     dead = true;
                     break;
                 }
-                if p.pos[1] - p.radius <= 0.0 {
-                    p.pos[1] = p.radius;
+                let gy = self.ground.height(p.pos[0], p.pos[2]);
+                if p.pos[1] - p.radius <= gy {
+                    p.pos[1] = gy + p.radius;
                     self.push_event(EVENT_HIT_GROUND, -1.0, &p);
                     dead = true;
                     break;

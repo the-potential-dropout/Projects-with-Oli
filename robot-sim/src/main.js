@@ -14,6 +14,8 @@ const defaults = {
   you: { top: 'laser', front: 'sonar' },
   bot: { top: 'random', front: 'random' },
   botLevel: 'normal',
+  ground: 'flat',
+  layout: 'game',
 };
 
 function loadSettings() {
@@ -92,6 +94,25 @@ async function boot() {
   };
   modeButtons.forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
   setMode(settings.mode);
+
+  // Ground and control layout
+  const seg = (id, key, onChange) => {
+    const buttons = document.querySelectorAll(`#${id} button`);
+    const set = (v) => {
+      settings[key] = v;
+      buttons.forEach((b) => b.classList.toggle('on', b.dataset[key] === v));
+    };
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        set(b.dataset[key]);
+        saveSettings(settings);
+        onChange?.();
+      }),
+    );
+    set(settings[key]);
+  };
+  seg('ground-seg', 'ground', () => game.showGarage(settings));
+  seg('layout-seg', 'layout');
 
   // Attachments
   const desc = (id) => ATTACHMENTS[id]?.desc ?? 'The bot picks something at random.';

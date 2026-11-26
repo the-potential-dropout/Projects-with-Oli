@@ -2,9 +2,11 @@
 // Every obstacle is registered in the Rust world so robots bump into it and
 // lasers/potatoes/sensors see it.
 import * as THREE from 'three';
+import { Terrain } from './core.js';
 
 export const ARENA_HALF = 3; // metres, so the arena is 6 m x 6 m
 export const SPAWN_Z = 2.5; // player spawns at -SPAWN_Z, bot at +SPAWN_Z
+export const GROUND_CELL = 0.03; // height-field spacing for rough ground (m)
 
 // [centerX, centerZ, sizeX, height, sizeZ, kind]
 // Low walls (18 cm) block a hexapod's view and shots; potatoes arc over them.
@@ -54,6 +56,28 @@ function gridTexture() {
   return t;
 }
 
+/** Floor mesh following the height field (a flat quad when the ground is flat). */
+function groundGeometry(terrain, rough) {
+  if (!rough) return new THREE.PlaneGeometry(ARENA_HALF * 2, ARENA_HALF * 2).rotateX(-Math.PI / 2);
+  const n = terrain.samples();
+  const g = new THREE.PlaneGeometry(ARENA_HALF * 2, ARENA_HALF * 2, n - 1, n - 1).rotateX(-Math.PI / 2);
+  // PlaneGeometry rows run from -Z to +Z after the rotation, columns -X to +X: same as the height field
+  const h = terrain.heights();
+  const pos = g.attributes.position;
+  for (let k = 0; k < pos.count; k++) pos.setY(k, h[k]);
+  g.computeVertexNormals();
+  // tint by height so bumps read on screen
+  const col = new Float32Array(pos.count * 3);
+  for (let k = 0; k < pos.count; k++) {
+    const t = Math.min(1, h[k] / 0.06);
+    col[k * 3] = 0.78 + t * 0.6;
+    col[k * 3 + 1] = 0.82 + t * 0.38;
+    col[k * 3 + 2] = 0.9 - t * 0.3;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  return g;
+}
+
 function crateTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 128;
@@ -72,12 +96,22 @@ function crateTexture() {
   return t;
 }
 
-export function buildArena(scene, world, { shadows }) {
+/**
+ * Floor (flat, or rough ground for testing balance and terrain mode), walls,
+ * cover and the Rust world. Returns the THREE group; the ground height field
+ * is in group.userData.terrain (a Rust Terrain, shared with the robots).
+ */
+export function buildArena(scene, world, { shadows, ground = 'flat', seed = 7 }) {
   const group = new THREE.Group();
   scene.add(group);
 
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(ARENA_HALF * 2, ARENA_HALF * 2), new THREE.MeshStandardMaterial({ map: gridTexture(), roughness: 0.9 }));
-  floor.rotation.x = -Math.PI / 2;
+  const terrain = new Terrain(ARENA_HALF, GROUND_CELL);
+  if (ground === 'rough') terrain.generate_rough(seed, 0.018, SPAWN_Z, 0.45);
+  world.set_terrain(terrain);
+  group.userData.terrain = terrain;
+  group.userData.ground = ground;
+
+  const floor = new THREE.Mesh(groundGeometry(terrain, ground === 'rough'), new THREE.MeshStandardMaterial({ map: gridTexture(), roughness: 0.9, vertexColors: ground === 'rough' }));
   floor.receiveShadow = shadows;
   group.add(floor);
 
@@ -122,11 +156,11 @@ export function buildArena(scene, world, { shadows }) {
 
 /** A practice target for Free Drive mode: knocks over when hit, then resets. */
 export class TargetDummy {
-  constructor(scene, world, x, z) {
+  constructor(scene, world, x, z, groundY = 0) {
     this.team = 'targets';
     this.cfg = { hitRadius: 0.13 };
     this.world = world;
-    this.pos = new THREE.Vector3(x, 0, z);
+    this.pos = new THREE.Vector3(x, groundY, z);
     this.maxHp = 30;
     this.hp = 30;
     this.alive = true;
@@ -148,11 +182,11 @@ export class TargetDummy {
     this.group.add(ring);
     this.group.traverse((o) => (o.castShadow = true));
     scene.add(this.group);
-    world.set_body(this.bodyId, x, 0.3, z, true);
+    world.set_body(this.bodyId, x, groundY + 0.3, z, true);
   }
 
   center(out = new THREE.Vector3()) {
-    return out.set(this.pos.x, 0.3, this.pos.z);
+    return out.set(this.pos.x, this.pos.y + 0.3, this.pos.z);
   }
 
   damage(amount) {
@@ -162,7 +196,7 @@ export class TargetDummy {
     if (this.hp <= 0) {
       this.alive = false;
       this.respawn = 3;
-      this.world.set_body(this.bodyId, this.pos.x, 0.3, this.pos.z, false);
+      this.world.set_body(this.bodyId, this.pos.x, this.pos.y + 0.3, this.pos.z, false);
     }
   }
 
@@ -179,7 +213,7 @@ export class TargetDummy {
         this.alive = true;
         this.hp = this.maxHp;
         this.group.rotation.x = 0;
-        this.world.set_body(this.bodyId, this.pos.x, 0.3, this.pos.z, true);
+        this.world.set_body(this.bodyId, this.pos.x, this.pos.y + 0.3, this.pos.z, true);
       }
     }
   }

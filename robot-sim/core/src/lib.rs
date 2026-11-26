@@ -2,7 +2,9 @@
 //! robot and benefit from being fast and allocation-free.
 //!
 //! * `ik`      – 3-joint leg inverse kinematics (coxa / femur / tibia)
-//! * `gait`    – tripod walking gait for a hexapod (foot trajectories + IK)
+//! * `gait`    – tripod / ripple / wave gaits, body pose, terrain adaptation, balance PID
+//!               (mirrors firmware/hexapod_controller/kinematics.cpp)
+//! * `terrain` – uneven ground and where the body comes to rest on it
 //! * `world`   – projectile physics, collisions, ray casts and sensor scans
 //!
 //! Units: metres, seconds, radians. Coordinate frame matches three.js:
@@ -10,7 +12,9 @@
 
 pub mod gait;
 pub mod ik;
+pub mod terrain;
 pub mod world;
 
-pub use gait::HexapodGait;
+pub use gait::{Balance, HexapodGait};
+pub use terrain::Terrain;
 pub use world::World;
