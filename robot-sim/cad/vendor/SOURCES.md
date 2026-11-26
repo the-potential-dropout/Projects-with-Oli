@@ -2,7 +2,7 @@
 
 The generator ([../hexapod_mk1_fusion.py](../hexapod_mk1_fusion.py)) imports the manufacturers' STEP models when they are in this folder. If a file is missing, it falls back to an envelope built from the same datasheet numbers.
 
-Run this once to download everything listed under "Downloaded by the script":
+Run this once to download everything listed under "Downloaded by the script". It also makes `rpi5_slim.step` with `slim_pi5.py`, which needs `pip install cadquery-ocp`:
 
 ```
 python fetch_vendor_cad.py
@@ -32,7 +32,7 @@ All files were fetched on 2026-11-25 from the manufacturer's own download server
 | Adafruit Feather ESP32-S3 (#5323) | `5323 Feather ESP32-S3.step` | [github.com/adafruit/Adafruit_CAD_Parts](https://github.com/adafruit/Adafruit_CAD_Parts) (raw GitHub) | **MIT** | Main controller in the control pod |
 | Adafruit BNO085 STEMMA QT (#4754) | `4754 BNO085 STEMMA QT.step` | same repo | **MIT** | IMU in the IMU pod |
 | Luxonis OAK-D Lite enclosure (DM9095) | `DM9095_enclosure.stp` | Linked from [github.com/luxonis/depthai-hardware](https://github.com/luxonis/depthai-hardware/tree/master/DM9095_OAK-D-LITE_DepthAI_USB3C) → Luxonis CDN `oak-files.fra1.cdn.digitaloceanspaces.com` | **MIT** (repo) | Brain module camera |
-| Raspberry Pi 5 | `rpi5.step` (from `RP-010083-CA-1-rpi-5 3D STEP - No Graphics small file.zip`) | [pip.raspberrypi.com, Raspberry Pi 5 category](https://pip.raspberrypi.com/categories/892-raspberry-pi-5) (public, no login) | None stated. Not redistributed | Brain module computer (the Active Cooler is an envelope) |
+| Raspberry Pi 5 | `rpi5.step` (from `RP-010083-CA-1-rpi-5 3D STEP - No Graphics small file.zip`, 77 MB) and `rpi5_slim.step` (4.2 MB, made from it by `slim_pi5.py`) | [pip.raspberrypi.com, Raspberry Pi 5 category](https://pip.raspberrypi.com/categories/892-raspberry-pi-5) (public, no login). Raspberry Pi publishes no lighter Pi 5 CAD: only this file, a larger "with graphics" STEP and a PDF drawing | None stated. Neither file is redistributed | Brain module computer. **Currently not placed** (`VENDOR_SKIP` in the generator): importing either file stalls Fusion inside this assembly, so the build uses the Pi envelope. The Active Cooler is always an envelope |
 
 ## Envelopes: real CAD needs a manual download
 
@@ -53,3 +53,12 @@ These parts have official CAD only behind a login or a dynamic web viewer, or no
 | Molex 5264 3-pin plugs, JST-XH | Boxes | Molex / JST sites (free login) |
 | M3 / M2 screws, heat-set inserts, standoffs | Not modelled (holes and counterbores are) | McMaster-Carr product pages offer STEP downloads in the browser (e.g. M3 × 8 button head 94500A222, tapered insert 94180A331) |
 | Bus hubs (perfboard + 5264 headers) | Boxes | Hand-built. No model |
+
+## Slim Raspberry Pi 5 model (`slim_pi5.py`)
+
+The official Pi 5 STEP holds about 2,700 solids, 42,600 faces and 1.1 M STEP entities. `slim_pi5.py` (Open CASCADE via `cadquery-ocp`) reduces it to 212 solids, 1,322 faces and 82k entities:
+- every solid under 2.5 mm is dropped;
+- the PCB becomes a plain 85 × 56 mm board with the four 2.7 mm mounting holes (58 × 49 mm pattern, per the official mechanical drawing);
+- connectors, chips and anything else with more than 12 faces become their exact bounding box.
+
+The frame is unchanged. It fits and looks like a Pi 5 at assembly scale. It still stalled Fusion's import in the Hexapod assembly (2026-11-25), so the generator skips it for now.

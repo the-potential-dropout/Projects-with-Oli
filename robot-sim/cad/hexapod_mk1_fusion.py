@@ -1452,8 +1452,14 @@ VENDOR = {
     'VL53L1X': 'vl53l1x-carrier.step',
     'PololuD36V50': 'd36v50fx-step-down-voltage-regulator.step',
     'OAKDLite': 'DM9095_enclosure.stp',
-    'RPi5': 'rpi5.step',
+    'RPi5': 'rpi5_slim.step',          # slimmed copy of the official STEP (vendor/slim_pi5.py)
 }
+
+
+# Importing the Pi 5 STEP (the official 77 MB file, and the 4 MB slim copy made by
+# vendor/slim_pi5.py) stalls Fusion inside this assembly on 2026-11-25: the main thread
+# blocks right after the import, with no dialog.  Use the envelope until that is solved.
+VENDOR_SKIP = {'RPi5'}
 
 
 def step_to_L():
@@ -1467,6 +1473,8 @@ def vendor_path(name):
     """Path of a downloaded vendor STEP, copied to a short temp path first
     (the repo can sit in a path longer than Windows' 260-character limit)."""
     if not VENDOR_DIR:
+        return None
+    if name in VENDOR_SKIP:
         return None
     p = os.path.join(VENDOR_DIR, VENDOR[name])
     if os.name == 'nt' and len(p) > 240:

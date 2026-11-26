@@ -70,6 +70,21 @@ def main():
         with open(dest, 'wb') as f:
             f.write(data)
         print('saved', name, len(data), 'bytes')
+    # the official Pi 5 STEP stalls Fusion's importer: make the slim copy the generator uses
+    full, slim = os.path.join(HERE, 'rpi5.step'), os.path.join(HERE, 'rpi5_slim.step')
+    if os.name == 'nt':
+        full, slim = LONG + full, LONG + slim
+    if os.path.exists(full) and not os.path.exists(slim):
+        import subprocess
+        tmp = os.path.join(os.environ.get('TEMP', '.'), 'rpi5_in.step')
+        out = os.path.join(os.environ.get('TEMP', '.'), 'rpi5_slim.step')
+        open(tmp, 'wb').write(open(full, 'rb').read())
+        r = subprocess.run([sys.executable, os.path.join(HERE, 'slim_pi5.py'), tmp, out, '2.5', '12'])
+        if r.returncode == 0:
+            open(slim, 'wb').write(open(out, 'rb').read())
+            print('saved rpi5_slim.step')
+        else:
+            print('slim_pi5.py failed (pip install cadquery-ocp); the generator falls back to the Pi envelope')
     if failed:
         sys.exit('failed: ' + ', '.join(failed))
 
