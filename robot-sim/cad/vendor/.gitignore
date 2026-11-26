@@ -1,0 +1,5 @@
+# Manufacturer CAD is downloaded by fetch_vendor_cad.py, not committed (see SOURCES.md)
+*.step
+*.stp
+*.pdf
+*.zip

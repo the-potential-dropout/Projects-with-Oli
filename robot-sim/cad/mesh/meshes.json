@@ -1,108 +1,111 @@
 {
  "body": {
-  "triangles": 26526,
+  "triangles": 43454,
   "bbox_m": [
    [
-    -0.101,
-    -0.0275,
-    -0.132
+    -0.0901,
+    -0.0216,
+    -0.134
    ],
    [
-    0.101,
-    0.0438,
+    0.0901,
+    0.0408,
     0.135
    ]
   ],
   "parts": [
+   "BalanceSocket_XH4",
    "BatteryTray",
-   "Battery_2S_2200",
-   "ControllerCarrier",
-   "ESP32_DevKitC",
+   "Battery_3S_4000",
+   "BusHub_5x5264",
+   "ElectronicsCarrier",
    "FrontSensorBracket",
-   "MG996R",
-   "PCA9685_0",
-   "PCA9685_1",
-   "Perfboard_50x70",
+   "FuseHolder_ATC_20A",
    "Plate_Bottom_Front",
    "Plate_Bottom_Rear",
    "Plate_Top_Front",
    "Plate_Top_Rear",
+   "PololuACS724",
+   "PololuBigMOSFET",
+   "PololuD36V28F5",
    "PowerPanel",
    "RockerSwitch_KCD1",
-   "Standoff_M3x45_FF",
-   "UBEC"
+   "ST3215",
+   "ServoDriverESP32",
+   "XT60_pair",
+   "XT60_socket"
   ]
  },
  "coxa": {
-  "triangles": 4192,
+  "triangles": 12782,
   "bbox_m": [
    [
-    -0.015,
-    -0.04,
-    -0.0241
+    -0.017,
+    -0.0385,
+    -0.0188
    ],
    [
-    0.0578,
-    0.0498,
-    0.0241
+    0.061,
+    0.0406,
+    0.0216
    ]
   ],
   "parts": [
-   "Coxa",
-   "Horn_25T",
-   "MG996R"
+   "CoxaBusHub_3x5264",
+   "CoxaCap",
+   "CoxaMain",
+   "STS3250"
   ]
  },
  "femur": {
-  "triangles": 3816,
+  "triangles": 9280,
   "bbox_m": [
    [
-    -0.013,
-    -0.013,
-    -0.0306
+    -0.014,
+    -0.0195,
+    -0.0261
    ],
    [
-    0.095,
-    0.013,
-    0.0306
+    0.0851,
+    0.0148,
+    0.0281
    ]
   ],
   "parts": [
    "Femur",
-   "Horn_25T",
-   "MG996R"
+   "ST3215"
   ]
  },
  "qr_adapter_example": {
-  "triangles": 2384,
+  "triangles": 2596,
   "bbox_m": [
    [
     -0.035,
-    0.0297,
+    0.021,
     -0.042
    ],
    [
     0.035,
-    0.069,
+    0.0603,
     0.02
    ]
   ],
   "parts": [
-   "MG90S",
-   "QR_AdapterPlate_Example"
+   "QR_AdapterPlate_Example",
+   "STS3032"
   ]
  },
  "qr_receiver": {
-  "triangles": 1380,
+  "triangles": 3724,
   "bbox_m": [
    [
     -0.03,
-    0.0275,
+    0.0188,
     -0.058
    ],
    [
     0.03,
-    0.0355,
+    0.0268,
     0.02
    ]
   ],
@@ -115,12 +118,12 @@
   "bbox_m": [
    [
     -0.0225,
-    -0.022,
+    -0.006,
     0.1304
    ],
    [
     0.0225,
-    -0.002,
+    0.014,
     0.144
    ]
   ],
@@ -129,22 +132,21 @@
   ]
  },
  "tibia": {
-  "triangles": 3172,
+  "triangles": 5114,
   "bbox_m": [
    [
-    -0.012,
     -0.014,
-    -0.0306
+    -0.016,
+    -0.0326
    ],
    [
     0.12,
-    0.014,
-    0.0306
+    0.016,
+    0.0346
    ]
   ],
   "parts": [
    "FootBoot_TPU",
-   "Horn_25T",
    "Tibia"
   ]
  }
