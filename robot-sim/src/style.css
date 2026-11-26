@@ -280,6 +280,38 @@ kbd {
   color: var(--text);
 }
 
+.notebook-link {
+  display: block;
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #ff7a1a;
+  border-radius: 8px;
+  background: #1c1f25;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.notebook-link:hover {
+  background: #23272e;
+}
+
+.notebook-link .nb-title {
+  display: block;
+  font-weight: 600;
+}
+
+.notebook-link .nb-title::after {
+  content: ' \2197';
+  color: #ff7a1a;
+}
+
+.notebook-link .nb-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .foot {
   margin: 14px 0 0;
   color: var(--muted);

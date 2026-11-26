@@ -38,6 +38,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: robot-sim/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile the design notebook (published as notebook.html)
+        run: python docs/notebook/build_notebook.py
       - run: npm ci
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
