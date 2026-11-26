@@ -53,6 +53,7 @@ void Gait::init() {
     mountYaw[i] = (x < 0) ? PI_F - splay : splay;           // same as gaitMounts() in hexapod.config.js
     neutral[i] = {x + FOOT_REACH * cosf(mountYaw[i]), -STAND_HEIGHT, z + FOOT_REACH * sinf(mountYaw[i])};
     feet[i] = neutral[i];
+    feetBody[i] = neutral[i];
     groundY[i] = 0;
     stance[i] = true;
   }
@@ -126,6 +127,8 @@ void Gait::update(float dt, const GaitInput& in) {
   if (activity > 0.02f && in.type != current && fmodf(phase / swingFrac, 1.0f) < dt * stepHz / swingFrac) current = in.type;
 
   clampedMask = 0;
+  // step-down limit: the femur's -10 deg limit puts the deepest foot ~131.6 mm below the coxa axis
+  float searchMax = fmaxf(0.0f, fminf(TD_SEARCH, FOOT_DEPTH_MAX - in.pose.height));
   float meanGround = 0;
   int nStance = 0;
   for (int i = 0; i < 6; i++) {
@@ -141,7 +144,7 @@ void Gait::update(float dt, const GaitInput& in) {
       lift = sinf(PI_F * u);
       // terrain: in the last 20 % of the swing keep lowering until the switch closes
       if (in.terrain && u > 0.8f && in.contact[i]) {
-        groundY[i] = feet[i].y + in.pose.height;       // early touchdown -> remember this foot's ground height
+        groundY[i] = touchdownHeight(i, in) + in.pose.height;   // early touchdown -> this foot's ground height
         lift = 0;
       }
     } else {
@@ -150,12 +153,12 @@ void Gait::update(float dt, const GaitInput& in) {
       lift = 0;
       if (in.terrain && !in.contact[i] && u < 0.5f) {
         // late touchdown: search down (bounded), then accept
-        groundY[i] = fmaxf(groundY[i] - TD_SEARCH_SPEED * dt, -TD_SEARCH);
+        groundY[i] = fmaxf(groundY[i] - TD_SEARCH_SPEED * dt, -searchMax);
       }
     }
     stance[i] = !inSwing;
     if (!in.terrain) groundY[i] *= (1.0f - fminf(1.0f, dt * 2.0f));   // relax back to flat
-    groundY[i] = fminf(fmaxf(groundY[i], -TD_SEARCH), STEP_UP_MAX);
+    groundY[i] = fminf(fmaxf(groundY[i], -searchMax), STEP_UP_MAX);
     if (stance[i]) { meanGround += groundY[i]; nStance++; }
 
     float act = fminf(activity, 1.0f);
@@ -171,6 +174,7 @@ void Gait::update(float dt, const GaitInput& in) {
     // cap the lift there (the swing just stays a little lower)
     float horiz = sqrtf(lx * lx + lz * lz) - COXA;
     if (horiz < kMinReach) pb.y = fminf(pb.y, -sqrtf(kMinReach * kMinReach - horiz * horiz));
+    feetBody[i] = pb;
     LegAngles a = solveLeg(lx, pb.y, lz, TIBIA_LIM[0] * DEG);
     clampJoints(a);
     if (a.clamped) clampedMask |= (1u << i);
@@ -184,6 +188,15 @@ void Gait::update(float dt, const GaitInput& in) {
     for (int i = 0; i < 6; i++) groundY[i] -= d;
     terrainShift += d;
   }
+}
+
+float Gait::touchdownHeight(int i, const GaitInput& in) const {
+  if (!in.hasAttitude) return feet[i].y;
+  Pose actual;
+  actual.roll = in.attRoll;
+  actual.pitch = in.attPitch;
+  actual.yaw = in.pose.yaw;
+  return rotate(actual, feetBody[i]).y;
 }
 
 void Balance::update(float dt, float tRoll, float tPitch, float mRoll, float mPitch, float rRoll, float rPitch) {
@@ -201,8 +214,8 @@ void Balance::update(float dt, float tRoll, float tPitch, float mRoll, float mPi
   float rate = BAL_RATE_MAX * DEG * dt;
   outRoll += fminf(fmaxf(uR - outRoll, -rate), rate);
   outPitch += fminf(fmaxf(uP - outPitch, -rate), rate);
-  outRoll = fminf(fmaxf(outRoll, -POSE_ROLL_MAX * DEG), POSE_ROLL_MAX * DEG);
-  outPitch = fminf(fmaxf(outPitch, -POSE_PITCH_MAX * DEG), POSE_PITCH_MAX * DEG);
+  outRoll = fminf(fmaxf(outRoll, -BAL_OUT_MAX * DEG), BAL_OUT_MAX * DEG);
+  outPitch = fminf(fmaxf(outPitch, -BAL_OUT_MAX * DEG), BAL_OUT_MAX * DEG);
 }
 
 }  // namespace hk

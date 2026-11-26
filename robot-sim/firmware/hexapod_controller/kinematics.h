@@ -107,13 +107,18 @@ struct GaitInput {
   float stepHeight = cfg::STEP_HEIGHT;
   bool terrain = false;                 // enable touchdown search / per-leg height adaptation
   bool contact[6] = {false, false, false, false, false, false};   // foot switches
+  // measured body attitude (IMU, rad). When set, touchdown heights are taken in the true
+  // level frame; otherwise a body that isn't where it was told to be learns its own tilt.
+  bool hasAttitude = false;
+  float attRoll = 0, attPitch = 0;
 };
 
 struct Gait {
   float phase = 0, activity = 0;
   float vel[3] = {0, 0, 0};
   Vec3 neutral[6];                      // neutral foot positions, body frame (ground at y = -height)
-  Vec3 feet[6];                         // current foot targets, body frame
+  Vec3 feet[6];                         // current foot targets, level (commanded) frame
+  Vec3 feetBody[6];                     // last posed body-frame targets after the lift cap (sent to IK)
   float groundY[6];                     // per-leg terrain height offset learned at touchdown (m, + = higher ground)
   float terrainShift = 0;               // accumulated mean ground change; the caller adds it to the body height
   bool stance[6];
@@ -124,6 +129,7 @@ struct Gait {
   void init();
   // dt in s.  Returns the joint angles in `angles` (sim convention, limits applied).
   void update(float dt, const GaitInput& in);
+  float touchdownHeight(int leg, const GaitInput& in) const;   // foot height below the origin, true level frame
   float legPhase(int leg) const;        // 0..1, swing during [0, duty) for that leg
   float duty(GaitType t) const { return t == GaitType::Tripod ? 0.5f : (t == GaitType::Ripple ? 0.333f : 0.1667f); }
   GaitType current = GaitType::Tripod;

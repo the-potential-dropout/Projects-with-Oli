@@ -51,13 +51,15 @@ constexpr float SHIFT_MAX = 0.025f;                                 // m
 
 // ---------------------------------------------------------------- balance (IMU leveling)
 constexpr float BAL_KP = 0.6f, BAL_KI = 2.0f, BAL_KD = 0.05f;      // deg of body correction per deg of error (per s for KI)
-constexpr float BAL_I_MAX = 15.0f;                                  // deg, integrator contribution clamp (anti-windup)
+constexpr float BAL_I_MAX = 10.0f;                                  // deg, integrator contribution clamp (anti-windup)
+constexpr float BAL_OUT_MAX = 10.0f;                                // deg: full levelling limit set by the leg's reach (CONTROL.md 8)
 constexpr float BAL_D_LPF_HZ = 8.0f;
 constexpr float BAL_RATE_MAX = 60.0f;                               // deg/s slew limit on the correction
 constexpr float MARGIN_MIN = 0.025f;                                // m, static stability margin floor
 
 // ---------------------------------------------------------------- terrain
-constexpr float TD_SEARCH = 0.050f;      // max reach down below the planned touchdown height (step-down limit)
+constexpr float TD_SEARCH = 0.050f;      // touchdown search depth, further limited by FOOT_DEPTH_MAX - body height
+constexpr float FOOT_DEPTH_MAX = 0.1316f; // lowest foot below the coxa axis at 100 mm reach (femur >= -10 deg)
 constexpr float TD_SEARCH_SPEED = 0.15f; // m/s descent while searching
 constexpr float STEP_UP_MAX = 0.040f;    // geometric step-up limit in terrain mode (CONTROL.md 8)
 constexpr float SLOPE_MAX_DEG = 20.0f;

@@ -110,13 +110,67 @@ static void test_margin() {
 static void test_balance_on_slope() {
   // body on a 12 deg slope (pitch): measured pitch = slope + commanded correction
   Balance b;
-  float slope = 12 * DEG, meas = slope;
+  float slope = 8 * DEG, meas = slope;
   for (int k = 0; k < 400; k++) {
     b.update(0.01f, 0, 0, 0, meas, 0, 0);
     meas = slope + b.outPitch;
   }
-  printf("balance on a 12 deg slope: body pitch %.2f deg after 4 s (correction %.1f deg)\n", meas / DEG, b.outPitch / DEG);
+  printf("balance (no gyro, no lag) on an 8 deg slope: body pitch %.2f deg after 4 s (correction %.1f deg)\n", meas / DEG, b.outPitch / DEG);
   CHECK(fabsf(meas) < 0.3f * DEG, "not levelled");
+  // beyond the reach limit the correction saturates at BAL_OUT_MAX (12 deg slope -> 2 deg left)
+  Balance c;
+  float m12 = 12 * DEG;
+  for (int k = 0; k < 400; k++) { c.update(0.01f, 0, 0, 0, m12, 0, 0); m12 = 12 * DEG + c.outPitch; }
+  CHECK(fabsf(c.outPitch + cfg::BAL_OUT_MAX * DEG) < 0.01f * DEG, "12 deg slope not clamped at the levelling limit");
+}
+
+// Terrain touchdown with the real body pitched relative to the command.  Feet resting on
+// flat ground under a body pitched 6 deg: the touchdown height must be the same for
+// every leg (the true level frame), whereas the old command-frame height differs front
+// to back by about L*sin(6 deg) and teaches the gait the tilt (positive feedback).
+static void test_touchdown_attitude() {
+  Gait g;
+  g.init();
+  GaitInput in;
+  in.terrain = true;
+  in.pose.height = cfg::TERRAIN_HEIGHT;
+  in.hasAttitude = true;
+  in.attPitch = 6 * DEG;
+  Pose actual;
+  actual.pitch = in.attPitch;
+  // feet on the ground plane y = -height, expressed in the (pitched) body frame
+  Pose inv;
+  float lo = 1, hi = -1, lo0 = 1, hi0 = -1;
+  for (int i = 0; i < 6; i++) {
+    Vec3 w{g.neutral[i].x, -cfg::TERRAIN_HEIGHT, g.neutral[i].z};
+    // body = R^T w: rotate by the inverse pitch
+    actual.pitch = -in.attPitch;
+    g.feetBody[i] = rotate(actual, w);
+    actual.pitch = in.attPitch;
+    float t = g.touchdownHeight(i, in);
+    lo = fminf(lo, t); hi = fmaxf(hi, t);
+    lo0 = fminf(lo0, g.feetBody[i].y); hi0 = fmaxf(hi0, g.feetBody[i].y);
+  }
+  printf("touchdown on flat ground, body pitched 6 deg: height spread %.2f mm in the IMU level frame, %.1f mm in the command frame (old)\n",
+         (hi - lo) * 1e3, (hi0 - lo0) * 1e3);
+  CHECK(hi - lo < 0.0005f, "touchdown heights still depend on the body's tilt");
+  CHECK(hi0 - lo0 > 0.01f, "test doesn't distinguish the two");
+}
+
+// Balance with the real gyro rate and a 60 ms first-order servo lag (the sim's plant).
+static void test_balance_gyro_lag() {
+  Balance b;
+  float slope = 8 * DEG, act = 0, prev = slope, tau = 0.06f, dt = 0.01f, worst = 0;
+  for (int k = 0; k < 400; k++) {
+    float meas = slope + act;
+    float rate = (meas - prev) / dt;
+    prev = meas;
+    b.update(dt, 0, 0, 0, meas, 0, rate);
+    act += (b.outPitch - act) * (dt / tau);
+    if (k >= 300) worst = fmaxf(worst, fabsf(slope + act));
+  }
+  printf("balance, 8 deg slope via gyro + 60 ms servo lag: residual %.2f deg (max over the last 1 s)\n", worst / DEG);
+  CHECK(worst < 0.3f * DEG, "not levelled or chattering");
 }
 
 static void test_crsf() {
@@ -144,6 +198,8 @@ int main() {
   test_ripple_wave_support();
   test_margin();
   test_balance_on_slope();
+  test_balance_gyro_lag();
+  test_touchdown_attitude();
   test_crsf();
   printf(fails ? "%d FAILED\n" : "all tests passed\n", fails);
   return fails ? 1 : 0;

@@ -86,7 +86,7 @@ For Mk1 the gain is small and the cost is decisive:
 | Foot switch in the tibia tip, sealed under the TPU boot (rev B2) | Reliable touchdown sensing for terrain work; the lead crosses every joint on its axis (WIRING.md) |
 
 **What it can and can't do:**
-- **Can:** walk and turn at the same time, turn on the spot and strafe. Hold any body pose within the limits (roll ±15°, pitch ±15°, yaw ±20°, height 60–110 mm, shift ±25 mm). Level the body on slopes up to 20°, step onto 40 mm obstacles and down 50 mm ones in terrain mode (CONTROL.md §8), fold its legs, and give the sim per-leg control.
+- **Can:** walk and turn at the same time, turn on the spot and strafe. Hold any body pose within the limits (roll ±15°, pitch ±15°, yaw ±20°, height 60–110 mm, shift ±25 mm). Level the body fully on slopes up to about 10° (and walk on 20° slopes leaning by the excess), step onto 40 mm obstacles and down about 27 mm ones at terrain height, about 42 mm with the body lowered (CONTROL.md §8), fold its legs, and give the sim per-leg control.
 - **Can't:** run (servo speed), jump, or carry more than 0.4 kg on top within the 2× margin.
 
 **For the simulator:** no change. It stays 3 DOF per leg, the same joint axes, link lengths (45 / 75 / 120 mm) and joint limits as `hexapod.config.js`. There are no passive joints and no coupling equations; the only coupling is the joint-limit rule `tibiaFoldWhenFemurDown`.

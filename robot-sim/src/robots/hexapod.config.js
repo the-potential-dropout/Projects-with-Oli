@@ -125,9 +125,9 @@ export const HEXAPOD = {
       wave: { offsets: [2 / 6, 1 / 6, 0, 5 / 6, 4 / 6, 3 / 6], swing: 1 / 6 },
     },
     stepHeight: 0.025, // m, capped near the body by the tibia fold limit (lift cap)
-    terrain: { bodyHeight: 0.105, stepHeight: 0.045, stepUpMax: 0.04, stepDownMax: 0.05, searchSpeed: 0.15, contactN: 1.5 },
+    terrain: { bodyHeight: 0.105, stepHeight: 0.045, stepUpMax: 0.04, stepDownMax: 0.05, footDepthMax: 0.1316 /* search depth = min(stepDownMax, footDepthMax - height) */, searchSpeed: 0.15, contactN: 1.5 },
     pose: { rollMax: 15, pitchMax: 15, yawMax: 20, heightMin: 0.06, heightMax: 0.11, shiftMax: 0.025 }, // deg, m
-    balance: { kp: 0.6, ki: 2.0, kd: 0.05, iMaxDeg: 15, slewDegPerS: 60, dLowpassHz: 8 },
+    balance: { kp: 0.6, ki: 2.0, kd: 0.05, iMaxDeg: 10, outMaxDeg: 10, slewDegPerS: 60, dLowpassHz: 8 },
     stabilityMarginMin: 0.025, // m: below this the tripod gait switches to ripple
     tipDeg: 35,
     slopeMaxDeg: 20,

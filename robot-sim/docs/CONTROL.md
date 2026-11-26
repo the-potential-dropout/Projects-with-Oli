@@ -170,7 +170,7 @@ k_min = sqrt(f² + t² − 2 f t cos(π + tibia_min)) = 85.4 mm  (tibia_min = �
 **Defaults.**
 - Step frequency 1.7 Hz walking, 2.6 Hz sprinting.
 - Step height 25 mm walking, 45 mm in terrain mode (with the body at 105 mm).
-- Top speeds 0.26 m/s walking, 0.48 m/s sprinting, 1.6 rad/s turning.
+- Commanded top speeds 0.26 m/s walking, 0.48 m/s sprinting, 1.6 rad/s turning. **The stance-window rule below caps the real straight-line speed at about 0.13–0.16 m/s** with `footReach` 100 mm and the 80–115 mm window, so sprint barely helps. Going faster needs a wider window (bigger servos) or a longer neutral reach.
 
 **Stance-window rule** (the load check, `cad/load_calc.py`). Every stance foot must stay **80–115 mm** from its coxa axis.
 1. For each leg, compute the radial excursion of the stride end points.
@@ -228,17 +228,17 @@ Measured: φ, θ (roll, pitch from the BNO085 game rotation vector) and the gyro
 
 ```
 e_k   = φ* − φ_k
-I_k   = clamp(I_{k−1} + e_k·dt, ±I_max/Ki)
+I_k   = clamp(I_{k−1} + e_k·dt, ±I_max/Ki)        (I_max = 10°)
 D_k   = D_{k−1} + (−ω_φ,k − D_{k−1})·(1 − e^(−2π·8Hz·dt))    (derivative on measurement, 8 Hz low-pass)
 u_k   = Kp·e_k + Ki·I_k + Kd·D_k
 out_k = out_{k−1} + clamp(u_k − out_{k−1}, ±60°/s·dt)       (slew limit)
-out_k = clamp(out_k, ±15°)
+out_k = clamp(out_k, ±10°)                          (levelling limit, §8)
 commanded body roll = φ* + out_k
 ```
 
 The same law runs for pitch.
 
-**Starting gains:** Kp = 0.6, Ki = 2.0 /s, Kd = 0.05 s, I_max = 15°, at 100 Hz.
+**Starting gains:** Kp = 0.6, Ki = 2.0 /s, Kd = 0.05 s, I_max = 10°, output limit ±10°, at 100 Hz.
 
 **Why this form.**
 - With the feet on the ground, the body's world attitude is the ground slope plus the commanded body tilt. So the loop is first order: e(1 + Kp) = −slope − Ki∫e.
@@ -272,10 +272,10 @@ The same law runs for pitch.
 - the soft servo set;
 - ripple gait recommended.
 
-**Touchdown handling.**
+**Touchdown handling.** Touchdown heights are taken in the **true level frame**: the foot's posed body-frame position (after the lift cap) rotated by the IMU's measured roll and pitch. Using the commanded frame instead makes a body that isn't where it was told to be learn its own tilt into the ground offsets: front feet "find" higher ground, rear feet search lower, and the tilt grows. The sim found this; host test `test_touchdown_attitude`.
 1. **Touchdown detection.** Each foot has a sealed Omron D2F micro-switch under the TPU boot, which closes when the boot carries more than about 1.5 N. It is read at 500 Hz and debounced over 2 samples.
 2. **Early contact** (switch closes in the last 20 % of the swing). Stop the descent there and store the leg's ground offset: `ground[leg] = foot_y + height`. The leg then walks on that level.
-3. **Late contact** (no switch by the planned touchdown). Keep lowering at 0.15 m/s for up to **50 mm** (step-down limit), then accept the position.
+3. **Late contact** (no switch by the planned touchdown). Keep lowering at 0.15 m/s for up to **131.6 mm − body height** (the step-down limit, at most 50 mm), then accept the position.
 4. **Terrain following.** The body height follows the mean ground offset of the stance feet (time constant 0.7 s) and the offsets are re-centred, so the body rides parallel to the ground.
 5. **Look-ahead.** The VL53L1X on the front bracket looks 30° down and reports the ground about 150 mm ahead. The brain uses it to slow down before drops; it is reported in telemetry, and the firmware gait doesn't depend on it.
 
@@ -291,10 +291,11 @@ Maximum foot lift, bounded by the tibia fold limit and the femur's +70° limit:
 | Limit | Value | Basis |
 | --- | --- | --- |
 | **Step up** | **40 mm** (terrain mode, 105 mm height) | Swing lift 45 mm at 100 mm reach, with 5 mm clearance |
-| **Step down** | **50 mm** | Touchdown search depth. The leg can reach 97 mm below the body's ground plane, so 50 mm leaves margin to re-level |
+| **Step down** | **≈ 27 mm** at the 105 mm terrain height, **≈ 42 mm** at 90 mm | With the femur limited to −10° the deepest foot is 131.6 mm below the coxa axis at 100 mm reach (133 mm at 115 mm). Step-down = 131.6 mm − body height. Lower the body before going down a step. Allowing the femur below −10° would need a new collision sweep |
 | **Belly clearance** | 51 mm at 90 mm height, 66 mm at 105 mm | Lowest part: coxa bracket 38.5 mm below the coxa joint |
 | **Slope, static** | 29° (tripod), 42° (ripple), with a 25 mm reserve | Margin minus the CoM shift h·tan θ, h ≈ 105 mm |
-| **Slope, rated** | **20°**, body levelled to ±2° | Servo margin: the downhill femurs carry more. The ±15° pose range levels up to 15° fully and leaves 5° on a 20° slope |
+| **Full levelling** | **≈ 10°** (best at about 98 mm body height) | Uphill feet can't come closer than about 65 mm below the coxa axis (tibia fold limit), downhill feet can't go deeper than 131.6 mm. Feet are about 170–180 mm from the body centre, so (131.6 − 65)/2 ≈ 180·tan θ gives θ ≈ 10°. The balance output is clamped at ±10° so the integrator doesn't wind up against the joint limits |
+| **Slope, rated** | **20°**, body levelled to slope − 10° | Static stability still holds (above). On 10–20° slopes the body leans by the excess |
 
 ### Fallen or tipped
 **Detection.** |roll| or |pitch| > 35°, or margin < 0 for 0.3 s.
@@ -373,11 +374,11 @@ Wiring for every sensor is in [WIRING.md](WIRING.md); parts and prices are in [E
    - Apply the lift cap y ≤ −sqrt(85.4² − h²) mm, and the stance-window rule (feet 80–115 mm: raise f_step up to 2.6 Hz, then scale v).
    - Change gait only when all feet are down.
 3. **Pose.** p_body = Rᵀ(p_foot − shift) with R = R_y(yaw)·R_x(pitch)·R_z(roll). Limits ±15° / ±15° / ±20°, height 60–110 mm.
-4. **Balance.** The PI-D above with Kp 0.6, Ki 2.0, Kd 0.05, I_max 15°, a 60°/s slew limit and an 8 Hz D low-pass, on the simulated IMU's roll and pitch (game rotation vector: gravity-referenced, no yaw correction).
+4. **Balance.** The PI-D above with Kp 0.6, Ki 2.0, Kd 0.05, I_max 10°, output ±10°, a 60°/s slew limit and an 8 Hz D low-pass, on the simulated IMU's roll and pitch (game rotation vector: gravity-referenced, no yaw correction).
 5. **Touchdown.** A contact closes when the foot's normal force > 1.5 N.
-   - Early contact in the last 20 % of the swing: freeze, then ground[leg] = foot_y + height.
-   - Late contact: descend at 0.15 m/s for up to 50 mm.
+   - Early contact in the last 20 % of the swing: freeze, then ground[leg] = rotate(R_imu(roll, pitch, pose yaw), foot_body).y + height.
+   - Late contact: descend at 0.15 m/s for up to min(50 mm, 131.6 mm − height).
    - Terrain following: height += mean(ground[stance])·min(1, 1.5·dt), then ground[i] −= the same amount.
 6. **Stability rule.** The margin is the signed distance of the CoM projection, (h·tan roll, −h·tan pitch), to the stance polygon. Below 25 mm, use ripple; below 0, fault.
-7. **Limits.** Step up 40 mm, step down 50 mm, slope 20° rated, tip at 35°.
+7. **Limits.** Step up 40 mm; step down 131.6 mm − body height (≈ 27 mm at 105 mm); full levelling ≈ 10°; slope 20° rated; tip at 35°.
 8. **Sources.** The radio layout and the arbitration in §6 (see [radio/README.md](../radio/README.md)).

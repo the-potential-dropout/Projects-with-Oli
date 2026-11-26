@@ -40,5 +40,8 @@
 
 **Terrain limits from the geometry.**
 - Step up **40 mm** (terrain mode, 105 mm body height).
-- Step down 50 mm.
+- Step down 131.6 mm − body height (about 27 mm at the 105 mm terrain height). The sim found the femur's −10° limit sets this.
+- Full levelling about 10° (balance output clamped there).
+
+**Fixed after the sim review.** Touchdown heights are now taken in the IMU's level frame, so the gait can't teach itself the body's tilt.
 - Slope 20° rated (static tipping at 29° in a tripod).

@@ -381,6 +381,9 @@ void loop() {
       in.stepHz = hold.sprint ? cfg::STEP_HZ_SPRINT : cfg::STEP_HZ_WALK;
       in.stepHeight = hold.terrain ? cfg::STEP_HEIGHT_TERRAIN : cfg::STEP_HEIGHT;
       for (int i = 0; i < 6; i++) in.contact[i] = foot[i];
+      in.hasAttitude = imuOk;                                      // touchdown heights in the true level frame
+      in.attRoll = imuRoll;
+      in.attPitch = imuPitch;
       // balance: level the body in the world (target = requested pose), feed-forward = requested pose
       bal.enabled = imuOk;
       bal.update(dt, hold.roll, hold.pitch, imuRoll, imuPitch, gyroRoll, gyroPitch);
