@@ -1,0 +1,539 @@
+{
+ "parts": [
+  {
+   "part": "Tray",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    148.0,
+    172.0,
+    23.7
+   ],
+   "volume_cm3": 56.74,
+   "fillets": 40,
+   "chamfer_edges": 42,
+   "edge_breaks": 0,
+   "qty": 1,
+   "est_g_each": 38.7
+  },
+  {
+   "part": "Deck",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    148.0,
+    172.0,
+    11.3
+   ],
+   "volume_cm3": 39.4,
+   "fillets": 16,
+   "chamfer_edges": 155,
+   "edge_breaks": 0,
+   "qty": 1,
+   "est_g_each": 26.9
+  },
+  {
+   "part": "BatteryHatch",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    64.0,
+    120.0,
+    2.5
+   ],
+   "volume_cm3": 16.07,
+   "fillets": 0,
+   "chamfer_edges": 20,
+   "edge_breaks": 0,
+   "qty": 1,
+   "est_g_each": 11.0
+  },
+  {
+   "part": "Coxa",
+   "bed": [
+    0,
+    -1,
+    0
+   ],
+   "extents_mm": [
+    47.0,
+    29.0,
+    40.0
+   ],
+   "volume_cm3": 15.24,
+   "fillets": 4,
+   "chamfer_edges": 18,
+   "edge_breaks": 9,
+   "qty": 6,
+   "est_g_each": 10.4
+  },
+  {
+   "part": "Femur",
+   "bed": [
+    0,
+    0,
+    -1
+   ],
+   "extents_mm": [
+    65.5,
+    40.0,
+    18.0
+   ],
+   "volume_cm3": 9.93,
+   "fillets": 6,
+   "chamfer_edges": 14,
+   "edge_breaks": 14,
+   "qty": 6,
+   "est_g_each": 6.8
+  },
+  {
+   "part": "Tibia",
+   "bed": [
+    -1,
+    0,
+    0
+   ],
+   "extents_mm": [
+    16.0,
+    40.0,
+    68.0
+   ],
+   "volume_cm3": 8.86,
+   "fillets": 7,
+   "chamfer_edges": 16,
+   "edge_breaks": 10,
+   "qty": 6,
+   "est_g_each": 6.0
+  }
+ ],
+ "harness": [
+  {
+   "cable": "Leg0 coxa lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 96.0
+  },
+  {
+   "cable": "Leg0 femur lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 71.0
+  },
+  {
+   "cable": "Leg0 tibia lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 78.0
+  },
+  {
+   "cable": "Leg1 coxa lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 62.0
+  },
+  {
+   "cable": "Leg1 femur lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 39.0
+  },
+  {
+   "cable": "Leg1 tibia lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 43.0
+  },
+  {
+   "cable": "Leg2 coxa lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 80.0
+  },
+  {
+   "cable": "Leg2 femur lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 58.0
+  },
+  {
+   "cable": "Leg2 tibia lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 61.0
+  },
+  {
+   "cable": "Leg3 coxa lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 96.0
+  },
+  {
+   "cable": "Leg3 femur lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 73.0
+  },
+  {
+   "cable": "Leg3 tibia lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 76.0
+  },
+  {
+   "cable": "Leg4 coxa lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 62.0
+  },
+  {
+   "cable": "Leg4 femur lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 40.0
+  },
+  {
+   "cable": "Leg4 tibia lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 42.0
+  },
+  {
+   "cable": "Leg5 coxa lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 80.0
+  },
+  {
+   "cable": "Leg5 femur lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 56.0
+  },
+  {
+   "cable": "Leg5 tibia lead (body)",
+   "d_mm": 2.0,
+   "length_mm": 63.0
+  },
+  {
+   "cable": "B1 holder + to BMS B+",
+   "d_mm": 1.8,
+   "length_mm": 23.0
+  },
+  {
+   "cable": "B2 holder - to BMS B-",
+   "d_mm": 1.8,
+   "length_mm": 23.0
+  },
+  {
+   "cable": "B3 holder mid-tap to BMS BM",
+   "d_mm": 1.8,
+   "length_mm": 153.0
+  },
+  {
+   "cable": "F1 BMS P+ to fuse",
+   "d_mm": 1.8,
+   "length_mm": 142.0
+  },
+  {
+   "cable": "F2 fuse to switch",
+   "d_mm": 1.8,
+   "length_mm": 26.0
+  },
+  {
+   "cable": "F3 switch to buck R IN+",
+   "d_mm": 1.8,
+   "length_mm": 36.0
+  },
+  {
+   "cable": "F4 buck R IN+ to buck L IN+",
+   "d_mm": 1.8,
+   "length_mm": 45.0
+  },
+  {
+   "cable": "G1 BMS P- to buck R IN-",
+   "d_mm": 1.8,
+   "length_mm": 132.0
+  },
+  {
+   "cable": "G2 buck R IN- to buck L IN-",
+   "d_mm": 1.8,
+   "length_mm": 63.0
+  },
+  {
+   "cable": "OR buck R OUT+ to V+",
+   "d_mm": 1.8,
+   "length_mm": 60.0
+  },
+  {
+   "cable": "OR buck R OUT- to GND",
+   "d_mm": 1.8,
+   "length_mm": 72.0
+  },
+  {
+   "cable": "OL buck L OUT- to GND",
+   "d_mm": 1.8,
+   "length_mm": 50.0
+  },
+  {
+   "cable": "OL buck L OUT+ to V+",
+   "d_mm": 1.8,
+   "length_mm": 63.0
+  },
+  {
+   "cable": "P1a PCA-R V+ to diode",
+   "d_mm": 1.3,
+   "length_mm": 100.0
+  },
+  {
+   "cable": "P1b diode to ESP32 5V",
+   "d_mm": 1.3,
+   "length_mm": 46.0
+  },
+  {
+   "cable": "E GND ESP32 to PCA-R",
+   "d_mm": 1.3,
+   "length_mm": 19.0
+  },
+  {
+   "cable": "E OE ESP32 to PCA-R",
+   "d_mm": 1.3,
+   "length_mm": 61.0
+  },
+  {
+   "cable": "E SCL ESP32 to PCA-R",
+   "d_mm": 1.3,
+   "length_mm": 32.0
+  },
+  {
+   "cable": "E SDA ESP32 to PCA-R",
+   "d_mm": 1.3,
+   "length_mm": 45.0
+  },
+  {
+   "cable": "E VCC ESP32 3V3 to PCA-R",
+   "d_mm": 1.3,
+   "length_mm": 66.0
+  },
+  {
+   "cable": "C GND PCA-R to PCA-L",
+   "d_mm": 1.3,
+   "length_mm": 31.0
+  },
+  {
+   "cable": "C OE PCA-R to PCA-L",
+   "d_mm": 1.3,
+   "length_mm": 39.0
+  },
+  {
+   "cable": "C SCL PCA-R to PCA-L",
+   "d_mm": 1.3,
+   "length_mm": 48.0
+  },
+  {
+   "cable": "C SDA PCA-R to PCA-L",
+   "d_mm": 1.3,
+   "length_mm": 56.0
+  },
+  {
+   "cable": "C VCC PCA-R to PCA-L",
+   "d_mm": 1.3,
+   "length_mm": 64.0
+  },
+  {
+   "cable": "S1 BMS P+ to divider",
+   "d_mm": 1.3,
+   "length_mm": 44.0
+  },
+  {
+   "cable": "S2 divider to GPIO34",
+   "d_mm": 1.3,
+   "length_mm": 51.0
+  },
+  {
+   "cable": "S3 divider to ESP32 GND",
+   "d_mm": 1.3,
+   "length_mm": 57.0
+  },
+  {
+   "cable": "Leg0 femur lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 103.0
+  },
+  {
+   "cable": "Leg0 tibia lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 78.0
+  },
+  {
+   "cable": "Leg0 tibia lead (femur)",
+   "d_mm": 2.0,
+   "length_mm": 44.0
+  },
+  {
+   "cable": "Leg1 femur lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 103.0
+  },
+  {
+   "cable": "Leg1 tibia lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 78.0
+  },
+  {
+   "cable": "Leg1 tibia lead (femur)",
+   "d_mm": 2.0,
+   "length_mm": 44.0
+  },
+  {
+   "cable": "Leg2 femur lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 103.0
+  },
+  {
+   "cable": "Leg2 tibia lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 78.0
+  },
+  {
+   "cable": "Leg2 tibia lead (femur)",
+   "d_mm": 2.0,
+   "length_mm": 44.0
+  },
+  {
+   "cable": "Leg3 femur lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 103.0
+  },
+  {
+   "cable": "Leg3 tibia lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 78.0
+  },
+  {
+   "cable": "Leg3 tibia lead (femur)",
+   "d_mm": 2.0,
+   "length_mm": 44.0
+  },
+  {
+   "cable": "Leg4 femur lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 103.0
+  },
+  {
+   "cable": "Leg4 tibia lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 78.0
+  },
+  {
+   "cable": "Leg4 tibia lead (femur)",
+   "d_mm": 2.0,
+   "length_mm": 44.0
+  },
+  {
+   "cable": "Leg5 femur lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 103.0
+  },
+  {
+   "cable": "Leg5 tibia lead (coxa)",
+   "d_mm": 2.0,
+   "length_mm": 78.0
+  },
+  {
+   "cable": "Leg5 tibia lead (femur)",
+   "d_mm": 2.0,
+   "length_mm": 44.0
+  }
+ ],
+ "joints": 18,
+ "occurrences": 173,
+ "mass_g": {
+  "printed": 216,
+  "bought": 410,
+  "hardware": 18.0,
+  "wiring": 14.0,
+  "total": 658
+ },
+ "geometry": {
+  "coxa": 30.0,
+  "femur": 44.0,
+  "tibia": 60.0,
+  "mounts": [
+   [
+    48.00000000000001,
+    72.0,
+    40.0
+   ],
+   [
+    60.0,
+    0.0,
+    0.0
+   ],
+   [
+    48.00000000000001,
+    -72.0,
+    -40.0
+   ],
+   [
+    -48.00000000000001,
+    72.0,
+    140.0
+   ],
+   [
+    -60.0,
+    0.0,
+    180.0
+   ],
+   [
+    -48.00000000000001,
+    -72.0,
+    -140.0
+   ]
+  ],
+  "joint_limits_fusion": {
+   "coxa": [
+    -25,
+    25
+   ],
+   "femur": [
+    -55,
+    35
+   ],
+   "tibia": [
+    -50,
+    40
+   ]
+  },
+  "deck": [
+   -0.8000000000000007,
+   1.6999999999999993
+  ],
+  "floor": -19.0,
+  "belly_floor": -27.0,
+  "lowest_leg_point": -25.0
+ },
+ "channels": {
+  "0": [
+   0,
+   1,
+   2
+  ],
+  "1": [
+   6,
+   7,
+   8
+  ],
+  "2": [
+   15,
+   14,
+   13
+  ],
+  "3": [
+   15,
+   14,
+   13
+  ],
+  "4": [
+   9,
+   8,
+   7
+  ],
+  "5": [
+   0,
+   1,
+   2
+  ]
+ }
+}

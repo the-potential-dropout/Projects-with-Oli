@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="Segoe UI, Arial, sans-serif" font-size="13">
+  <title>Hexapod Mini wiring diagram</title>
+  <rect width="1200" height="760" fill="#ffffff"/>
+  <text x="20" y="30" font-size="20" font-weight="600">Hexapod Mini: wiring</text>
+  <text x="20" y="50" fill="#555">Wire names match the "Harness ..." components in cad/mini_hexapod_fusion.py and the table in WIRING.md.  Red = battery +, black = ground, orange = 5 V servo rail, blue = logic.</text>
+
+  <!-- battery -->
+  <rect x="30" y="90" width="170" height="120" rx="6" fill="#f4f4f4" stroke="#333"/>
+  <text x="45" y="112" font-weight="600">2 x 18650 holder</text>
+  <text x="45" y="130">Molicel P28A x 2 (2S)</text>
+  <text x="45" y="148">6.0 - 8.4 V</text>
+  <circle cx="200" cy="165" r="4"/><text x="150" y="170" text-anchor="end">+ (red)</text>
+  <circle cx="200" cy="190" r="4"/><text x="150" y="195" text-anchor="end">- (black)</text>
+  <circle cx="115" cy="210" r="4"/><text x="122" y="204">mid-tap</text>
+
+  <!-- BMS -->
+  <rect x="290" y="90" width="150" height="150" rx="6" fill="#e9f5ea" stroke="#333"/>
+  <text x="305" y="112" font-weight="600">2S BMS 20 A</text>
+  <text x="305" y="130" fill="#555">under-volt, short</text>
+  <circle cx="290" cy="165" r="4"/><text x="298" y="169">B+ (= P+)</text>
+  <circle cx="290" cy="190" r="4"/><text x="298" y="194">B-</text>
+  <circle cx="290" cy="215" r="4"/><text x="298" y="219">BM</text>
+  <circle cx="440" cy="165" r="4"/><text x="432" y="160" text-anchor="end">P+</text>
+  <circle cx="440" cy="230" r="4"/><text x="432" y="226" text-anchor="end">P-</text>
+
+  <line x1="200" y1="165" x2="290" y2="165" stroke="#c00" stroke-width="3"/><text x="215" y="160" fill="#c00">B1</text>
+  <line x1="200" y1="190" x2="290" y2="190" stroke="#000" stroke-width="3"/><text x="215" y="185">B2</text>
+  <polyline points="115,210 115,250 260,250 260,215 290,215" fill="none" stroke="#777" stroke-width="3"/><text x="170" y="245" fill="#555">B3</text>
+
+  <!-- fuse + switch -->
+  <rect x="510" y="140" width="110" height="50" rx="6" fill="#fde9e7" stroke="#333"/>
+  <text x="525" y="162" font-weight="600">Fuse 10 A</text><text x="525" y="180" fill="#555">mini blade</text>
+  <rect x="680" y="140" width="120" height="50" rx="6" fill="#fde9e7" stroke="#333"/>
+  <text x="695" y="162" font-weight="600">Rocker switch</text><text x="695" y="180" fill="#555">KCD1, rear deck</text>
+  <line x1="440" y1="165" x2="510" y2="165" stroke="#c00" stroke-width="3"/><text x="455" y="158" fill="#c00">F1</text>
+  <line x1="620" y1="165" x2="680" y2="165" stroke="#c00" stroke-width="3"/><text x="635" y="158" fill="#c00">F2</text>
+
+  <!-- bucks -->
+  <rect x="880" y="90" width="150" height="90" rx="6" fill="#e7eefc" stroke="#333"/>
+  <text x="895" y="112" font-weight="600">Mini560 R (5 V 5 A)</text>
+  <circle cx="880" cy="140" r="4"/><text x="888" y="144">IN+</text>
+  <circle cx="880" cy="165" r="4"/><text x="888" y="169">IN-</text>
+  <circle cx="1030" cy="140" r="4"/><text x="1022" y="144" text-anchor="end">OUT+</text>
+  <circle cx="1030" cy="165" r="4"/><text x="1022" y="169" text-anchor="end">OUT-</text>
+  <rect x="880" y="220" width="150" height="90" rx="6" fill="#e7eefc" stroke="#333"/>
+  <text x="895" y="242" font-weight="600">Mini560 L (5 V 5 A)</text>
+  <circle cx="880" cy="270" r="4"/><text x="888" y="274">IN+</text>
+  <circle cx="880" cy="295" r="4"/><text x="888" y="299">IN-</text>
+  <circle cx="1030" cy="270" r="4"/><text x="1022" y="274" text-anchor="end">OUT+</text>
+  <circle cx="1030" cy="295" r="4"/><text x="1022" y="299" text-anchor="end">OUT-</text>
+
+  <polyline points="800,165 840,165 840,140 880,140" fill="none" stroke="#c00" stroke-width="3"/><text x="815" y="158" fill="#c00">F3</text>
+  <polyline points="860,140 860,270 880,270" fill="none" stroke="#c00" stroke-width="3"/><text x="842" y="240" fill="#c00">F4</text>
+  <polyline points="440,230 470,230 470,330 850,330 850,165 880,165" fill="none" stroke="#000" stroke-width="3"/><text x="600" y="325">G1</text>
+  <polyline points="850,295 880,295" fill="none" stroke="#000" stroke-width="3"/><text x="852" y="312">G2</text>
+
+  <!-- PCA boards -->
+  <rect x="880" y="400" width="290" height="140" rx="6" fill="#dfe6ff" stroke="#333"/>
+  <text x="895" y="422" font-weight="600">PCA9685 R - I2C 0x40 (legs 0-2)</text>
+  <text x="895" y="440" fill="#555">V+ / GND screw terminal: servo power only</text>
+  <text x="895" y="458" fill="#555">ch 0,1,2 FR  |  6,7,8 MR  |  15,14,13 RR (coxa, femur, tibia)</text>
+  <circle cx="880" cy="490" r="4"/><text x="888" y="494">GND OE SCL SDA VCC (front 6-pin)</text>
+  <circle cx="880" cy="520" r="4"/><text x="888" y="524">GND OE SCL SDA VCC (rear 6-pin)</text>
+  <rect x="880" y="590" width="290" height="140" rx="6" fill="#dfe6ff" stroke="#333"/>
+  <text x="895" y="612" font-weight="600">PCA9685 L - I2C 0x41, A0 bridged (legs 3-5)</text>
+  <text x="895" y="630" fill="#555">ch 15,14,13 FL  |  9,8,7 ML  |  0,1,2 RL (coxa, femur, tibia)</text>
+  <circle cx="880" cy="700" r="4"/><text x="888" y="704">GND OE SCL SDA VCC (rear 6-pin)</text>
+  <text x="895" y="650" fill="#a00">Do NOT link the V+ pins of the two boards</text>
+
+  <polyline points="1030,140 1100,140 1100,380 1150,380 1150,400" fill="none" stroke="#e08000" stroke-width="3"/><text x="1105" y="200" fill="#e08000">OR OUT+ to V+</text>
+  <polyline points="1030,165 1080,165 1080,390 1120,390 1120,400" fill="none" stroke="#000" stroke-width="3"/><text x="1040" y="185">OR OUT- to GND</text>
+  <polyline points="1030,270 1060,270 1060,570 1150,570 1150,590" fill="none" stroke="#e08000" stroke-width="3"/><text x="1065" y="560" fill="#e08000">OL</text>
+  <polyline points="1030,295 1045,295 1045,580 1120,580 1120,590" fill="none" stroke="#000" stroke-width="3"/>
+
+  <!-- ESP32 -->
+  <rect x="380" y="430" width="300" height="230" rx="6" fill="#f0f0f0" stroke="#333"/>
+  <text x="395" y="452" font-weight="600">ESP32-DevKitC-32E (mounted pins up)</text>
+  <text x="395" y="470" fill="#555">Bluepad32 gamepad over Bluetooth</text>
+  <circle cx="680" cy="490" r="4"/><text x="672" y="494" text-anchor="end">GPIO22 SCL / GPIO21 SDA</text>
+  <circle cx="680" cy="515" r="4"/><text x="672" y="519" text-anchor="end">GPIO4 OE (high = servos off)</text>
+  <circle cx="680" cy="540" r="4"/><text x="672" y="544" text-anchor="end">3V3 / GND</text>
+  <circle cx="380" cy="590" r="4"/><text x="388" y="594">5V (VIN)</text>
+  <circle cx="380" cy="620" r="4"/><text x="388" y="624">GPIO34 (battery sense)</text>
+  <circle cx="380" cy="645" r="4"/><text x="388" y="649">GND</text>
+  <polyline points="680,490 780,490 880,490" fill="none" stroke="#1f5fd0" stroke-width="2"/>
+  <polyline points="680,515 780,515 780,495" fill="none" stroke="#1f5fd0" stroke-width="2"/>
+  <polyline points="680,540 790,540 790,495" fill="none" stroke="#1f5fd0" stroke-width="2"/>
+  <text x="700" y="482" fill="#1f5fd0">E: GND, OE, SCL, SDA, VCC (Dupont)</text>
+  <polyline points="880,520 850,520 850,700 880,700" fill="none" stroke="#1f5fd0" stroke-width="2"/><text x="790" y="620" fill="#1f5fd0">C: chain x 5</text>
+
+  <!-- diode + divider -->
+  <rect x="200" y="575" width="90" height="30" rx="4" fill="#fff8d0" stroke="#333"/><text x="210" y="595">1N5822 &#9654;|</text>
+  <polyline points="290,590 380,590" fill="none" stroke="#e08000" stroke-width="2"/><text x="315" y="585" fill="#e08000">P1b</text>
+  <polyline points="200,590 150,590 150,700 860,700 860,560 1100,560 1100,410" fill="none" stroke="#e08000" stroke-width="2" stroke-dasharray="6 3"/><text x="160" y="690" fill="#e08000">P1a: PCA-R V+ terminal</text>
+  <rect x="190" y="620" width="100" height="40" rx="4" fill="#fff8d0" stroke="#333"/><text x="198" y="637">100k / 47k</text><text x="198" y="653" fill="#555">divider</text>
+  <polyline points="290,625 380,620" fill="none" stroke="#1f5fd0" stroke-width="2"/><text x="315" y="616" fill="#1f5fd0">S2</text>
+  <polyline points="290,650 380,645" fill="none" stroke="#000" stroke-width="2"/><text x="315" y="664">S3</text>
+  <polyline points="190,640 60,640 60,300 270,300 270,165" fill="none" stroke="#c00" stroke-width="2"/><text x="70" y="630" fill="#c00">S1 from BMS P+ (before fuse)</text>
+
+  <!-- servos -->
+  <rect x="30" y="330" width="300" height="70" rx="6" fill="#ffffff" stroke="#333" stroke-dasharray="4 3"/>
+  <text x="45" y="352" font-weight="600">18 x MG90S, 3-wire leads (brown GND, red V+, orange PWM)</text>
+  <text x="45" y="372" fill="#555">each plugs straight onto its PCA channel; brown wire</text>
+  <text x="45" y="390" fill="#555">to the board edge marked GND</text>
+</svg>
